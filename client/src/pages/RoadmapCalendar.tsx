@@ -22,7 +22,6 @@ const RoadmapCalendar = () => {
   const [featureName, setFeatureName] = useState("");
   const [featureDescription, setFeatureDescription] = useState("");
   const [featurePriority, setFeaturePriority] = useState<PriorityLevel>("medium");
-  const [featureDuration, setFeatureDuration] = useState("14");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(() => {
     const date = new Date();
@@ -54,7 +53,7 @@ const RoadmapCalendar = () => {
 
   // Create feature mutation
   const createFeature = useMutation({
-    mutationFn: async (feature: { name: string; description: string; priority: PriorityLevel; duration: number; projectId: number }) => {
+    mutationFn: async (feature: { name: string; description: string; priority: PriorityLevel; projectId: number }) => {
       return apiRequest('POST', '/api/features', feature).then(res => res.json());
     },
     onSuccess: () => {
@@ -118,7 +117,6 @@ const RoadmapCalendar = () => {
       name: featureName,
       description: featureDescription,
       priority: featurePriority,
-      duration: parseInt(featureDuration),
       projectId,
     }, {
       onSuccess: (newFeature) => {
@@ -137,7 +135,6 @@ const RoadmapCalendar = () => {
     setFeatureName("");
     setFeatureDescription("");
     setFeaturePriority("medium");
-    setFeatureDuration("14");
     setStartDate(new Date());
     const newEndDate = new Date();
     newEndDate.setDate(newEndDate.getDate() + 14);
@@ -200,7 +197,7 @@ const RoadmapCalendar = () => {
 
                           // Update end date based on duration
                           const newEndDate = new Date(newStartDate);
-                          newEndDate.setDate(newStartDate.getDate() + parseInt(featureDuration));
+                          newEndDate.setDate(newStartDate.getDate() + 14);
                           setEndDate(newEndDate);
                         }}
                       />
@@ -224,37 +221,18 @@ const RoadmapCalendar = () => {
                         placeholder="Enter feature description"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="priority">Priority</Label>
-                        <Select value={featurePriority} onValueChange={(value: PriorityLevel) => setFeaturePriority(value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select priority" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="low">Low</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="duration">Duration (days)</Label>
-                        <Input
-                          id="duration"
-                          type="number"
-                          min="1"
-                          value={featureDuration}
-                          onChange={(e) => {
-                            setFeatureDuration(e.target.value);
-
-                            // Update end date based on duration
-                            const newEndDate = new Date(startDate);
-                            newEndDate.setDate(startDate.getDate() + parseInt(e.target.value));
-                            setEndDate(newEndDate);
-                          }}
-                        />
-                      </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select value={featurePriority} onValueChange={(value: PriorityLevel) => setFeaturePriority(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <DialogFooter>
