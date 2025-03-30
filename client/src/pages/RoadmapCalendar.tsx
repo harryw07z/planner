@@ -60,6 +60,7 @@ const RoadmapCalendar = () => {
       projectId: number;
       startDate: string;
       endDate: string;
+      duration: number;
     }) => {
       return apiRequest('POST', '/api/features', feature).then(res => res.json());
     },
@@ -126,7 +127,8 @@ const RoadmapCalendar = () => {
       priority: featurePriority,
       projectId,
       startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
+      endDate: endDate.toISOString(),
+      duration: Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) // Calculate duration in days
     }, {
       onSuccess: (newFeature) => {
         // Create a roadmap event for this feature
