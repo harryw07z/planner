@@ -161,8 +161,8 @@ const RoadmapCalendar = () => {
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
     createRoadmapEvent.mutate({
       featureId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate,
+      endDate,
       projectId,
     });
   };
