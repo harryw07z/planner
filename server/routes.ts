@@ -296,7 +296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.post("/roadmap-events", async (req, res) => {
     try {
-      const validatedData = insertRoadmapEventSchema.parse(req.body);
+      // Convert ISO string dates to Date objects if they're strings
+      const data = {
+        ...req.body,
+        startDate: req.body.startDate instanceof Date ? req.body.startDate : new Date(req.body.startDate),
+        endDate: req.body.endDate instanceof Date ? req.body.endDate : new Date(req.body.endDate)
+      };
+      
+      const validatedData = insertRoadmapEventSchema.parse(data);
       const event = await storage.createRoadmapEvent(validatedData);
       res.status(201).json(event);
     } catch (error) {
@@ -308,7 +315,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const eventId = parseInt(req.params.id);
     
     try {
-      const event = await storage.updateRoadmapEvent(eventId, req.body);
+      // Handle date conversions if needed
+      const data = { ...req.body };
+      
+      if (data.startDate && typeof data.startDate === 'string') {
+        data.startDate = new Date(data.startDate);
+      }
+      
+      if (data.endDate && typeof data.endDate === 'string') {
+        data.endDate = new Date(data.endDate);
+      }
+      
+      const event = await storage.updateRoadmapEvent(eventId, data);
       
       if (!event) {
         return res.status(404).json({ message: "Roadmap event not found" });
