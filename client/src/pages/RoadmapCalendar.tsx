@@ -87,7 +87,8 @@ const RoadmapCalendar = () => {
     mutationFn: async (event: { featureId: number; startDate: Date; endDate: Date; projectId: number }) => {
       // Format dates to ISO strings for the API
       const formattedEvent = {
-        ...event,
+        featureId: event.featureId,
+        projectId: event.projectId,
         startDate: event.startDate.toISOString(),
         endDate: event.endDate.toISOString(),
       };
@@ -121,21 +122,22 @@ const RoadmapCalendar = () => {
       return;
     }
 
+    // Calculate duration in days
+    const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
     createFeature.mutate({
       name: featureName,
       description: featureDescription,
       priority: featurePriority,
       projectId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      duration: Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) // Calculate duration in days
+      duration
     }, {
       onSuccess: (newFeature) => {
         // Create a roadmap event for this feature
         createRoadmapEvent.mutate({
           featureId: newFeature.id,
-          startDate,
-          endDate,
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
           projectId,
         });
         setNewFeatureOpen(false);
@@ -157,8 +159,8 @@ const RoadmapCalendar = () => {
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
     createRoadmapEvent.mutate({
       featureId,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       projectId,
     });
   };
