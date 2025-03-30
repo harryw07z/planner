@@ -14,12 +14,21 @@ import CalendarGrid from "@/components/roadmap/CalendarGrid";
 import { Feature, PriorityLevel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+// Make sure the type is included at the top of your file if not already there
+type PriorityLevel = "high" | "medium" | "low";
+
 const RoadmapCalendar = () => {
   const [newFeatureOpen, setNewFeatureOpen] = useState(false);
   const [featureName, setFeatureName] = useState("");
   const [featureDescription, setFeatureDescription] = useState("");
   const [featurePriority, setFeaturePriority] = useState<PriorityLevel>("medium");
   const [featureDuration, setFeatureDuration] = useState("14");
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 14); // Default to 14 days from now
+    return date;
+  });
   const { toast } = useToast();
 
   // Default project ID for demo
@@ -105,6 +114,16 @@ const RoadmapCalendar = () => {
       priority: featurePriority,
       duration: parseInt(featureDuration),
       projectId,
+    }, {
+      onSuccess: (newFeature) => {
+        // Create a roadmap event for this feature
+        createRoadmapEvent.mutate({
+          featureId: newFeature.id,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          projectId,
+        });
+      }
     });
   };
 
@@ -113,6 +132,10 @@ const RoadmapCalendar = () => {
     setFeatureDescription("");
     setFeaturePriority("medium");
     setFeatureDuration("14");
+    setStartDate(new Date());
+    const newEndDate = new Date();
+    newEndDate.setDate(newEndDate.getDate() + 14);
+    setEndDate(newEndDate);
   };
 
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
@@ -188,7 +211,45 @@ const RoadmapCalendar = () => {
                           type="number"
                           min="1"
                           value={featureDuration}
-                          onChange={(e) => setFeatureDuration(e.target.value)}
+                          onChange={(e) => {
+                            setFeatureDuration(e.target.value);
+                            
+                            // Update end date based on duration
+                            const newEndDate = new Date(startDate);
+                            newEndDate.setDate(startDate.getDate() + parseInt(e.target.value));
+                            setEndDate(newEndDate);
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="startDate">Start Date</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={startDate.toISOString().split('T')[0]}
+                          onChange={(e) => {
+                            const newStartDate = new Date(e.target.value);
+                            setStartDate(newStartDate);
+                            
+                            // Update end date based on duration
+                            const newEndDate = new Date(newStartDate);
+                            newEndDate.setDate(newStartDate.getDate() + parseInt(featureDuration));
+                            setEndDate(newEndDate);
+                          }}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="endDate">End Date</Label>
+                        <Input
+                          id="endDate"
+                          type="date"
+                          value={endDate.toISOString().split('T')[0]}
+                          onChange={(e) => {
+                            setEndDate(new Date(e.target.value));
+                          }}
                         />
                       </div>
                     </div>
