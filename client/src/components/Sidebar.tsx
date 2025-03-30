@@ -45,9 +45,9 @@ const Sidebar = () => {
             <ul>
               <li className="mb-1">
                 <Link href="/document">
-                  <a
+                  <span
                     className={cn(
-                      "flex items-center px-4 py-2 text-sm rounded-md",
+                      "flex items-center px-4 py-2 text-sm rounded-md cursor-pointer",
                       location === "/" || location === "/document"
                         ? "bg-primary text-white"
                         : "text-text hover:bg-neutral-200"
@@ -55,14 +55,14 @@ const Sidebar = () => {
                   >
                     <FileText className="h-5 w-5 mr-2" />
                     PRD Editor
-                  </a>
+                  </span>
                 </Link>
               </li>
               <li className="mb-1">
                 <Link href="/roadmap">
-                  <a
+                  <span
                     className={cn(
-                      "flex items-center px-4 py-2 text-sm rounded-md",
+                      "flex items-center px-4 py-2 text-sm rounded-md cursor-pointer",
                       location === "/roadmap"
                         ? "bg-primary text-white"
                         : "text-text hover:bg-neutral-200"
@@ -70,14 +70,14 @@ const Sidebar = () => {
                   >
                     <Calendar className="h-5 w-5 mr-2" />
                     Roadmap Calendar
-                  </a>
+                  </span>
                 </Link>
               </li>
               <li className="mb-1">
                 <Link href="/research">
-                  <a
+                  <span
                     className={cn(
-                      "flex items-center px-4 py-2 text-sm rounded-md",
+                      "flex items-center px-4 py-2 text-sm rounded-md cursor-pointer",
                       location === "/research"
                         ? "bg-primary text-white"
                         : "text-text hover:bg-neutral-200"
@@ -85,7 +85,7 @@ const Sidebar = () => {
                   >
                     <FileSearch className="h-5 w-5 mr-2" />
                     Research Materials
-                  </a>
+                  </span>
                 </Link>
               </li>
             </ul>

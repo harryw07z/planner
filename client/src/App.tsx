@@ -17,6 +17,10 @@ function App() {
           <Route path="/document" component={DocumentEditor} />
           <Route path="/roadmap" component={RoadmapCalendar} />
           <Route path="/research" component={ResearchMaterials} />
+          {/* Add aliases for URLs that user tried to access */}
+          <Route path="/research-materials" component={ResearchMaterials} />
+          <Route path="/road-map" component={RoadmapCalendar} />
+          <Route path="/settings" component={DocumentEditor} />
           <Route component={NotFound} />
         </Switch>
         <Toaster />

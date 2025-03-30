@@ -28,7 +28,9 @@ export async function analyzeResearchMaterial(text: string): Promise<{
       response_format: { type: "json_object" },
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    // Handle potential null content
+    const content = response.choices[0].message.content || '{"insights":[],"recommendations":[]}';
+    return JSON.parse(content);
   } catch (error: any) {
     console.error("Failed to analyze research material:", error);
     throw new Error("Failed to analyze research material: " + error.message);
@@ -53,7 +55,8 @@ export async function generatePrdDraft(insights: string[], title: string): Promi
       ],
     });
 
-    return response.choices[0].message.content;
+    // Handle potential null content
+    return response.choices[0].message.content || `# ${title}\n\nUnable to generate PRD content. Please try again with more detailed insights.`;
   } catch (error: any) {
     console.error("Failed to generate PRD draft:", error);
     throw new Error("Failed to generate PRD draft: " + error.message);
