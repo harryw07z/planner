@@ -134,8 +134,8 @@ const RoadmapCalendar = () => {
         // Create a roadmap event for this feature
         createRoadmapEvent.mutate({
           featureId: newFeature.id,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate,
+          endDate,
           projectId,
         });
       }
@@ -155,8 +155,8 @@ const RoadmapCalendar = () => {
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
     createRoadmapEvent.mutate({
       featureId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate,
+      endDate,
       projectId,
     });
   };
