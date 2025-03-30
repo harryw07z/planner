@@ -14,9 +14,6 @@ import CalendarGrid from "@/components/roadmap/CalendarGrid";
 import { Feature, PriorityLevel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// Make sure the type is included at the top of your file if not already there
-type PriorityLevel = "high" | "medium" | "low";
-
 const RoadmapCalendar = () => {
   const [newFeatureOpen, setNewFeatureOpen] = useState(false);
   const [featureName, setFeatureName] = useState("");
@@ -28,6 +25,8 @@ const RoadmapCalendar = () => {
     date.setDate(date.getDate() + 14); // Default to 14 days from now
     return date;
   });
+  // Add currentDate state for Calendar refresh
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const { toast } = useToast();
 
   // Default project ID for demo
@@ -69,7 +68,11 @@ const RoadmapCalendar = () => {
         title: "Feature created",
         description: "Your feature has been created successfully.",
       });
+      // Invalidate both queries to ensure all data is refreshed
       queryClient.invalidateQueries({ queryKey: ['/api/features'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/roadmap-events'] });
+      // Update current date to force calendar refresh
+      setCurrentDate(new Date());
       setNewFeatureOpen(false);
       resetFeatureForm();
     },
@@ -99,7 +102,11 @@ const RoadmapCalendar = () => {
         title: "Event scheduled",
         description: "Your feature has been scheduled successfully.",
       });
+      // Invalidate both queries to ensure all data is refreshed
+      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
       queryClient.invalidateQueries({ queryKey: ['/api/roadmap-events'] });
+      // Update current date to force calendar refresh
+      setCurrentDate(new Date());
     },
     onError: (error: any) => {
       toast({
@@ -336,7 +343,8 @@ const RoadmapCalendar = () => {
               <CalendarGrid 
                 features={features} 
                 events={roadmapEvents} 
-                onAddEvent={handleAddEvent} 
+                onAddEvent={handleAddEvent}
+                currentDate={currentDate}
               />
             )}
           </div>

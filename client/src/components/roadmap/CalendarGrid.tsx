@@ -9,10 +9,18 @@ interface CalendarGridProps {
   features: Feature[];
   events: RoadmapEvent[];
   onAddEvent: (featureId: number, startDate: Date, endDate: Date, projectId: number) => void;
+  currentDate?: Date;
 }
 
-const CalendarGrid = ({ features, events, onAddEvent }: CalendarGridProps) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+const CalendarGrid = ({ features, events, onAddEvent, currentDate: calendarDate }: CalendarGridProps) => {
+  const [currentDate, setCurrentDate] = useState(calendarDate || new Date());
+  
+  // Update internal state when prop changes
+  useEffect(() => {
+    if (calendarDate) {
+      setCurrentDate(calendarDate);
+    }
+  }, [calendarDate]);
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
 
   // Generate calendar days
@@ -32,14 +40,27 @@ const CalendarGrid = ({ features, events, onAddEvent }: CalendarGridProps) => {
 
     // Add events to days
     for (const event of eventsWithFeatures) {
-      const startDate = new Date(event.startDate);
-      const endDate = new Date(event.endDate);
-
-      days.forEach(day => {
-        if (isDateBetween(day.date, startDate, endDate)) {
-          day.events.push(event);
+      try {
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+        
+        // Make sure dates are valid
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          console.error('Invalid date in event:', event);
+          continue;
         }
-      });
+
+        // Add event to each day between start and end date (inclusive)
+        days.forEach(day => {
+          if (isSameDay(day.date, startDate) || 
+              isSameDay(day.date, endDate) || 
+              (day.date > startDate && day.date < endDate)) {
+            day.events.push(event);
+          }
+        });
+      } catch (error) {
+        console.error('Error processing event:', error, event);
+      }
     }
 
     setCalendarDays(days);
