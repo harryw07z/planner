@@ -148,6 +148,23 @@ const RoadmapCalendar = () => {
           startDate,
           endDate,
           projectId,
+        }, {
+          onSuccess: () => {
+            // Additional manual data refresh
+            apiRequest('GET', `/api/features?projectId=${projectId}`)
+              .then(res => res.json())
+              .then(data => {
+                // Force React to update component
+                setCurrentDate(new Date()); 
+              });
+              
+            apiRequest('GET', `/api/roadmap-events?projectId=${projectId}`)
+              .then(res => res.json())
+              .then(data => {
+                // Force React to update component
+                setCurrentDate(new Date()); 
+              });
+          }
         });
         setNewFeatureOpen(false);
         resetFeatureForm();
@@ -171,6 +188,23 @@ const RoadmapCalendar = () => {
       startDate,
       endDate,
       projectId,
+    }, {
+      onSuccess: () => {
+        // Additional manual data refresh to ensure UI updates immediately
+        apiRequest('GET', `/api/features?projectId=${projectId}`)
+          .then(res => res.json())
+          .then(data => {
+            // Force a component update by changing the state
+            setCurrentDate(new Date()); 
+          });
+          
+        apiRequest('GET', `/api/roadmap-events?projectId=${projectId}`)
+          .then(res => res.json())
+          .then(data => {
+            // Force a component update by changing the state
+            setCurrentDate(new Date()); 
+          });
+      }
     });
   };
 

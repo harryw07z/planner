@@ -48,13 +48,17 @@ const FeatureCard = ({
     "feature-card border rounded shadow-sm transition-opacity",
     isBacklog
       ? "bg-white border-neutral-200 p-3 mb-3"
-      : `${getPriorityColorClass(feature.priority)} border-${
+      : `border-${
           feature.priority === "high"
             ? "primary"
             : feature.priority === "medium"
             ? "secondary"
             : "neutral-300"
         } p-1 mb-1 text-xs`,
+    // Apply background opacity classes only to backlog items
+    !isBacklog && feature.priority === "high" && "bg-primary bg-opacity-20 text-white",
+    !isBacklog && feature.priority === "medium" && "bg-secondary bg-opacity-20 text-white",
+    !isBacklog && feature.priority === "low" && "bg-neutral-500 bg-opacity-20 text-white",
     isDragging && "opacity-50",
     isDraggable && "cursor-grab active:cursor-grabbing"
   );
