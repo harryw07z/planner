@@ -104,7 +104,7 @@ const RoadmapCalendar = () => {
 
   const handleFeatureSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!featureName.trim()) {
       toast({
         title: "Validation error",
@@ -113,7 +113,7 @@ const RoadmapCalendar = () => {
       });
       return;
     }
-    
+
     createFeature.mutate({
       name: featureName,
       description: featureDescription,
@@ -187,17 +187,25 @@ const RoadmapCalendar = () => {
                         placeholder="Enter feature name"
                       />
                     </div>
-                    
+
                     <div className="grid gap-2">
                       <Label htmlFor="startDate">Start Date</Label>
                       <Input
                         id="startDate"
                         type="date"
                         value={startDate.toISOString().split('T')[0]}
-                        onChange={(e) => setStartDate(new Date(e.target.value))}
+                        onChange={(e) => {
+                          const newStartDate = new Date(e.target.value);
+                          setStartDate(newStartDate);
+
+                          // Update end date based on duration
+                          const newEndDate = new Date(newStartDate);
+                          newEndDate.setDate(newStartDate.getDate() + parseInt(featureDuration));
+                          setEndDate(newEndDate);
+                        }}
                       />
                     </div>
-                    
+
                     <div className="grid gap-2">
                       <Label htmlFor="endDate">End Date</Label>
                       <Input
@@ -239,7 +247,7 @@ const RoadmapCalendar = () => {
                           value={featureDuration}
                           onChange={(e) => {
                             setFeatureDuration(e.target.value);
-                            
+
                             // Update end date based on duration
                             const newEndDate = new Date(startDate);
                             newEndDate.setDate(startDate.getDate() + parseInt(e.target.value));
@@ -248,40 +256,9 @@ const RoadmapCalendar = () => {
                         />
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="startDate">Start Date</Label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={startDate.toISOString().split('T')[0]}
-                          onChange={(e) => {
-                            const newStartDate = new Date(e.target.value);
-                            setStartDate(newStartDate);
-                            
-                            // Update end date based on duration
-                            const newEndDate = new Date(newStartDate);
-                            newEndDate.setDate(newStartDate.getDate() + parseInt(featureDuration));
-                            setEndDate(newEndDate);
-                          }}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="endDate">End Date</Label>
-                        <Input
-                          id="endDate"
-                          type="date"
-                          value={endDate.toISOString().split('T')[0]}
-                          onChange={(e) => {
-                            setEndDate(new Date(e.target.value));
-                          }}
-                        />
-                      </div>
-                    </div>
                   </div>
                   <DialogFooter>
-                    <Button type="submit" disabled={createFeature.isPending}>
+                    <Button type="submit" disabled={createFeature.isPending || createRoadmapEvent.isPending}>
                       {createFeature.isPending ? "Creating..." : "Create Feature"}
                     </Button>
                   </DialogFooter>
@@ -290,13 +267,13 @@ const RoadmapCalendar = () => {
             </Dialog>
           </div>
         </div>
-        
+
         <div className="flex flex-col-reverse md:flex-row gap-4">
           <div className="w-full md:w-1/4">
             <div className="bg-white border border-neutral-200 rounded-lg p-4 mb-4">
               <h3 className="font-medium mb-3">Feature Backlog</h3>
               <p className="text-sm text-neutral-500 mb-4">Drag features to the calendar to schedule</p>
-              
+
               {/* Feature Cards */}
               {featuresLoading ? (
                 <div className="py-4 text-center text-sm text-neutral-500">Loading features...</div>
@@ -313,7 +290,7 @@ const RoadmapCalendar = () => {
                   ))}
                 </div>
               )}
-              
+
               <Button
                 variant="outline"
                 className="w-full mt-2 py-2 text-sm text-primary border-primary"
@@ -322,7 +299,7 @@ const RoadmapCalendar = () => {
                 + Add New Feature
               </Button>
             </div>
-            
+
             <div className="bg-white border border-neutral-200 rounded-lg p-4">
               <h3 className="font-medium mb-3">Team Members</h3>
               <div className="flex flex-wrap gap-2">
@@ -353,7 +330,7 @@ const RoadmapCalendar = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="w-full md:w-3/4">
             {eventsLoading || featuresLoading ? (
               <div className="bg-white border border-neutral-200 rounded-lg p-8 text-center">
