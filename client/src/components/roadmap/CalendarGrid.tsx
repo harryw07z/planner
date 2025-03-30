@@ -15,20 +15,20 @@ const CalendarGrid = ({ features, events, onAddEvent }: CalendarGridProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
 
-  // Create events with features
-  const eventsWithFeatures: RoadmapEventWithFeature[] = events.map(event => {
-    const feature = features.find(f => f.id === event.featureId);
-    return {
-      ...event,
-      feature: feature!
-    };
-  });
-
   // Generate calendar days
   useEffect(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const days = generateCalendarDays(year, month);
+
+    // Create events with features within the useEffect to avoid recreation on each render
+    const eventsWithFeatures: RoadmapEventWithFeature[] = events.map(event => {
+      const feature = features.find(f => f.id === event.featureId);
+      return {
+        ...event,
+        feature: feature!
+      };
+    });
 
     // Add events to days
     for (const event of eventsWithFeatures) {
@@ -43,7 +43,7 @@ const CalendarGrid = ({ features, events, onAddEvent }: CalendarGridProps) => {
     }
 
     setCalendarDays(days);
-  }, [currentDate, events, features, eventsWithFeatures]);
+  }, [currentDate, events, features]);
 
   // Navigation functions
   const goToPreviousMonth = () => {
