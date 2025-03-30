@@ -125,8 +125,8 @@ const RoadmapCalendar = () => {
         // Create a roadmap event for this feature
         createRoadmapEvent.mutate({
           featureId: newFeature.id,
-          startDate: startDate,
-          endDate: endDate,
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
           projectId,
         });
       }
@@ -147,8 +147,8 @@ const RoadmapCalendar = () => {
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
     createRoadmapEvent.mutate({
       featureId,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       projectId,
     });
   };
@@ -185,6 +185,26 @@ const RoadmapCalendar = () => {
                         value={featureName}
                         onChange={(e) => setFeatureName(e.target.value)}
                         placeholder="Enter feature name"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="startDate">Start Date</Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={startDate.toISOString().split('T')[0]}
+                        onChange={(e) => setStartDate(new Date(e.target.value))}
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="endDate">End Date</Label>
+                      <Input
+                        id="endDate"
+                        type="date"
+                        value={endDate.toISOString().split('T')[0]}
+                        onChange={(e) => setEndDate(new Date(e.target.value))}
                       />
                     </div>
                     <div className="grid gap-2">
