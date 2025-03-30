@@ -130,14 +130,16 @@ const RoadmapCalendar = () => {
       description: featureDescription,
       priority: featurePriority,
       projectId,
-      duration
+      duration,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
     }, {
       onSuccess: (newFeature) => {
         // Create a roadmap event for this feature
         createRoadmapEvent.mutate({
           featureId: newFeature.id,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate,
+          endDate,
           projectId,
         });
         setNewFeatureOpen(false);
