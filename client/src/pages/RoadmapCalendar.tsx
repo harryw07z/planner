@@ -138,6 +138,8 @@ const RoadmapCalendar = () => {
           endDate,
           projectId,
         });
+        setNewFeatureOpen(false);
+        resetFeatureForm();
       }
     });
   };
