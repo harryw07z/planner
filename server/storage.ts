@@ -7,6 +7,8 @@ import {
   features, type Feature, type InsertFeature,
   roadmapEvents, type RoadmapEvent, type InsertRoadmapEvent
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, count } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -92,50 +94,52 @@ export class MemStorage implements IStorage {
     this.createUser({ username: "demo", password: "password" });
     
     // Create a default project
-    const projectId = this.createProject({ 
+    this.createProject({ 
       name: "Mobile App Redesign", 
       description: "Redesign of the mobile app with enhanced UX", 
       userId: 1 
-    }).id;
+    }).then(project => {
+      const projectId = project.id;
 
-    // Create a default document
-    this.createDocument({
-      title: "Mobile App Redesign PRD",
-      content: "",
-      projectId
-    });
+      // Create a default document
+      this.createDocument({
+        title: "Mobile App Redesign PRD",
+        content: "",
+        projectId
+      });
 
-    // Create default features
-    this.createFeature({
-      name: "Redesigned Onboarding",
-      description: "Create a simplified onboarding flow that highlights key features and reduces friction.",
-      priority: "high",
-      duration: 14, // 2 weeks
-      projectId
-    });
+      // Create default features
+      this.createFeature({
+        name: "Redesigned Onboarding",
+        description: "Create a simplified onboarding flow that highlights key features and reduces friction.",
+        priority: "high",
+        duration: 14, // 2 weeks
+        projectId
+      });
 
-    this.createFeature({
-      name: "User Dashboard",
-      description: "Develop a customizable dashboard that adapts to user behavior and provides quick access to frequently used features.",
-      priority: "high",
-      duration: 21, // 3 weeks
-      projectId
-    });
+      this.createFeature({
+        name: "User Dashboard",
+        description: "Develop a customizable dashboard that adapts to user behavior and provides quick access to frequently used features.",
+        priority: "high",
+        duration: 21, // 3 weeks
+        projectId
+      });
 
-    this.createFeature({
-      name: "Search Functionality",
-      description: "Implement advanced search with filters, recent searches, and predictive suggestions.",
-      priority: "medium",
-      duration: 14, // 2 weeks
-      projectId
-    });
+      this.createFeature({
+        name: "Search Functionality",
+        description: "Implement advanced search with filters, recent searches, and predictive suggestions.",
+        priority: "medium",
+        duration: 14, // 2 weeks
+        projectId
+      });
 
-    this.createFeature({
-      name: "Checkout Process",
-      description: "Streamline the checkout process to reduce cart abandonment.",
-      priority: "high",
-      duration: 7, // 1 week
-      projectId
+      this.createFeature({
+        name: "Checkout Process",
+        description: "Streamline the checkout process to reduce cart abandonment.",
+        priority: "high",
+        duration: 7, // 1 week
+        projectId
+      });
     });
   }
 
@@ -317,4 +321,247 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+
+  // Project operations
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project || undefined;
+  }
+
+  async getProjectsByUserId(userId: number): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.userId, userId));
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    const [newProject] = await db.insert(projects).values(project).returning();
+    return newProject;
+  }
+
+  async updateProject(id: number, project: Partial<Project>): Promise<Project | undefined> {
+    const [updatedProject] = await db
+      .update(projects)
+      .set(project)
+      .where(eq(projects.id, id))
+      .returning();
+    return updatedProject || undefined;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    await db.delete(projects).where(eq(projects.id, id));
+    return true;
+  }
+
+  // Document operations
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document || undefined;
+  }
+
+  async getDocumentsByProjectId(projectId: number): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.projectId, projectId));
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [newDocument] = await db.insert(documents).values(document).returning();
+    return newDocument;
+  }
+
+  async updateDocument(id: number, document: Partial<Document>): Promise<Document | undefined> {
+    // Always update the updatedAt field
+    const updatedFields = {
+      ...document,
+      updatedAt: new Date()
+    };
+    
+    const [updatedDocument] = await db
+      .update(documents)
+      .set(updatedFields)
+      .where(eq(documents.id, id))
+      .returning();
+    return updatedDocument || undefined;
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    await db.delete(documents).where(eq(documents.id, id));
+    return true;
+  }
+
+  // Material operations
+  async getMaterial(id: number): Promise<Material | undefined> {
+    const [material] = await db.select().from(materials).where(eq(materials.id, id));
+    return material || undefined;
+  }
+
+  async getMaterialsByProjectId(projectId: number): Promise<Material[]> {
+    return await db.select().from(materials).where(eq(materials.projectId, projectId));
+  }
+
+  async createMaterial(material: InsertMaterial): Promise<Material> {
+    const [newMaterial] = await db.insert(materials).values(material).returning();
+    return newMaterial;
+  }
+
+  async deleteMaterial(id: number): Promise<boolean> {
+    await db.delete(materials).where(eq(materials.id, id));
+    return true;
+  }
+
+  // Material Analysis operations
+  async getMaterialAnalysis(id: number): Promise<MaterialAnalysis | undefined> {
+    const [analysis] = await db.select().from(materialAnalyses).where(eq(materialAnalyses.id, id));
+    return analysis || undefined;
+  }
+
+  async getMaterialAnalysesByMaterialId(materialId: number): Promise<MaterialAnalysis[]> {
+    return await db.select().from(materialAnalyses).where(eq(materialAnalyses.materialId, materialId));
+  }
+
+  async createMaterialAnalysis(analysis: InsertMaterialAnalysis): Promise<MaterialAnalysis> {
+    const [newAnalysis] = await db.insert(materialAnalyses).values(analysis).returning();
+    return newAnalysis;
+  }
+
+  // Feature operations
+  async getFeature(id: number): Promise<Feature | undefined> {
+    const [feature] = await db.select().from(features).where(eq(features.id, id));
+    return feature || undefined;
+  }
+
+  async getFeaturesByProjectId(projectId: number): Promise<Feature[]> {
+    return await db.select().from(features).where(eq(features.projectId, projectId));
+  }
+
+  async createFeature(feature: InsertFeature): Promise<Feature> {
+    const [newFeature] = await db.insert(features).values(feature).returning();
+    return newFeature;
+  }
+
+  async updateFeature(id: number, feature: Partial<Feature>): Promise<Feature | undefined> {
+    const [updatedFeature] = await db
+      .update(features)
+      .set(feature)
+      .where(eq(features.id, id))
+      .returning();
+    return updatedFeature || undefined;
+  }
+
+  async deleteFeature(id: number): Promise<boolean> {
+    await db.delete(features).where(eq(features.id, id));
+    return true;
+  }
+
+  // Roadmap Event operations
+  async getRoadmapEvent(id: number): Promise<RoadmapEvent | undefined> {
+    const [event] = await db.select().from(roadmapEvents).where(eq(roadmapEvents.id, id));
+    return event || undefined;
+  }
+
+  async getRoadmapEventsByProjectId(projectId: number): Promise<RoadmapEvent[]> {
+    return await db.select().from(roadmapEvents).where(eq(roadmapEvents.projectId, projectId));
+  }
+
+  async createRoadmapEvent(event: InsertRoadmapEvent): Promise<RoadmapEvent> {
+    const [newEvent] = await db.insert(roadmapEvents).values(event).returning();
+    return newEvent;
+  }
+
+  async updateRoadmapEvent(id: number, event: Partial<RoadmapEvent>): Promise<RoadmapEvent | undefined> {
+    const [updatedEvent] = await db
+      .update(roadmapEvents)
+      .set(event)
+      .where(eq(roadmapEvents.id, id))
+      .returning();
+    return updatedEvent || undefined;
+  }
+
+  async deleteRoadmapEvent(id: number): Promise<boolean> {
+    await db.delete(roadmapEvents).where(eq(roadmapEvents.id, id));
+    return true;
+  }
+
+  // Method to initialize the database with sample data
+  async initializeWithSampleData(): Promise<void> {
+    // Check if there are already users in the database
+    const userCount = await db.select({ count: count() }).from(users);
+    if (userCount[0].count > 0) {
+      return; // Database already has data, don't initialize
+    }
+
+    // Create a default user
+    const [user] = await db.insert(users)
+      .values({ username: "demo", password: "password" })
+      .returning();
+
+    // Create a default project
+    const [project] = await db.insert(projects)
+      .values({
+        name: "Mobile App Redesign",
+        description: "Redesign of the mobile app with enhanced UX",
+        userId: user.id
+      })
+      .returning();
+
+    // Create a default document
+    await db.insert(documents)
+      .values({
+        title: "Mobile App Redesign PRD",
+        content: "",
+        projectId: project.id
+      });
+
+    // Create default features
+    await db.insert(features)
+      .values([
+        {
+          name: "Redesigned Onboarding",
+          description: "Create a simplified onboarding flow that highlights key features and reduces friction.",
+          priority: "high",
+          duration: 14, // 2 weeks
+          projectId: project.id
+        },
+        {
+          name: "User Dashboard",
+          description: "Develop a customizable dashboard that adapts to user behavior and provides quick access to frequently used features.",
+          priority: "high",
+          duration: 21, // 3 weeks
+          projectId: project.id
+        },
+        {
+          name: "Search Functionality",
+          description: "Implement advanced search with filters, recent searches, and predictive suggestions.",
+          priority: "medium",
+          duration: 14, // 2 weeks
+          projectId: project.id
+        },
+        {
+          name: "Checkout Process",
+          description: "Streamline the checkout process to reduce cart abandonment.",
+          priority: "high",
+          duration: 7, // 1 week
+          projectId: project.id
+        }
+      ]);
+  }
+}
+
+// Switch to database storage
+export const storage = new DatabaseStorage();
+
+// Initialize the database with sample data
+storage.initializeWithSampleData().catch(console.error);
