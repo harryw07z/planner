@@ -53,7 +53,14 @@ const RoadmapCalendar = () => {
 
   // Create feature mutation
   const createFeature = useMutation({
-    mutationFn: async (feature: { name: string; description: string; priority: PriorityLevel; projectId: number }) => {
+    mutationFn: async (feature: { 
+      name: string; 
+      description: string; 
+      priority: PriorityLevel; 
+      projectId: number;
+      startDate: string;
+      endDate: string;
+    }) => {
       return apiRequest('POST', '/api/features', feature).then(res => res.json());
     },
     onSuccess: () => {
@@ -118,6 +125,8 @@ const RoadmapCalendar = () => {
       description: featureDescription,
       priority: featurePriority,
       projectId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
     }, {
       onSuccess: (newFeature) => {
         // Create a roadmap event for this feature
