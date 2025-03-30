@@ -77,8 +77,14 @@ const RoadmapCalendar = () => {
 
   // Create roadmap event mutation
   const createRoadmapEvent = useMutation({
-    mutationFn: async (event: { featureId: number; startDate: string; endDate: string; projectId: number }) => {
-      return apiRequest('POST', '/api/roadmap-events', event).then(res => res.json());
+    mutationFn: async (event: { featureId: number; startDate: Date; endDate: Date; projectId: number }) => {
+      // Format dates to ISO strings for the API
+      const formattedEvent = {
+        ...event,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate.toISOString(),
+      };
+      return apiRequest('POST', '/api/roadmap-events', formattedEvent).then(res => res.json());
     },
     onSuccess: () => {
       toast({
@@ -119,8 +125,8 @@ const RoadmapCalendar = () => {
         // Create a roadmap event for this feature
         createRoadmapEvent.mutate({
           featureId: newFeature.id,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
+          startDate: startDate,
+          endDate: endDate,
           projectId,
         });
       }
@@ -141,8 +147,8 @@ const RoadmapCalendar = () => {
   const handleAddEvent = (featureId: number, startDate: Date, endDate: Date, projectId: number) => {
     createRoadmapEvent.mutate({
       featureId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       projectId,
     });
   };
