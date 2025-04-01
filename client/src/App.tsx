@@ -33,35 +33,37 @@ function App() {
     }
   };
 
-  // Get action button based on current route
-  const getActionButton = () => {
+  // Get contextual information for the current page
+  const getPageContext = () => {
     switch (location) {
       case "/":
       case "/document":
         return {
-          label: "New Document",
-          icon: <PlusCircle className="h-4 w-4 mr-1.5" />,
-          action: () => console.log("Create new document")
+          description: "Manage your product requirements documentation"
         };
       case "/roadmap":
         return {
-          label: "Add Event",
+          actionLabel: "Add Event",
           icon: <PlusCircle className="h-4 w-4 mr-1.5" />,
-          action: () => console.log("Add roadmap event")
+          action: () => console.log("Add roadmap event"),
+          description: "Plan your product development timeline"
         };
       case "/research":
       case "/research-materials":
         return {
-          label: "Upload Research",
+          actionLabel: "Upload Research",
           icon: <PlusCircle className="h-4 w-4 mr-1.5" />,
-          action: () => console.log("Upload research")
+          action: () => console.log("Upload research"),
+          description: "Organize your product research materials"
         };
       default:
-        return null;
+        return {
+          description: ""
+        };
     }
   };
 
-  const actionButton = getActionButton();
+  const pageContext = getPageContext();
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -71,13 +73,18 @@ function App() {
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-gray-100 shadow-sm">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-medium text-gray-800">{getPageTitle()}</h1>
+            <div>
+              <h1 className="text-xl font-medium text-gray-800">{getPageTitle()}</h1>
+              {pageContext.description && (
+                <p className="text-xs text-gray-500 mt-0.5">{pageContext.description}</p>
+              )}
+            </div>
             
-            {/* Primary action button */}
-            {actionButton && (
-              <Button size="sm" className="ml-4 h-9">
-                {actionButton.icon}
-                {actionButton.label}
+            {/* Primary action button - only shown for roadmap and research pages */}
+            {pageContext.actionLabel && (
+              <Button size="sm" className="ml-4 h-9" onClick={pageContext.action}>
+                {pageContext.icon}
+                {pageContext.actionLabel}
               </Button>
             )}
           </div>
