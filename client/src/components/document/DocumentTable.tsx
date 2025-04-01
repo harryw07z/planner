@@ -32,7 +32,7 @@ import { formatDate } from "@/lib/utils";
 import { useDocumentEditing } from '@/hooks/useDocumentEditing';
 import { EditablePriority } from './EditablePriority';
 import { EditableStatus } from './EditableStatus';
-import { EditableTags } from './EditableTags';
+import { EditableTagsSimple } from './EditableTagsSimple';
 import { EditableTitle } from './EditableTitle';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, SortAsc, Star, X } from "lucide-react";
@@ -255,7 +255,7 @@ export const DocumentTable = memo(({
     const isEditing = editingCell?.documentId === document.id && editingCell?.field === "tags";
     
     return (
-      <EditableTags
+      <EditableTagsSimple
         tags={document.tags}
         isEditing={isEditing}
         editValue={editValue || [...document.tags]}
