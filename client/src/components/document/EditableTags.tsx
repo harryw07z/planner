@@ -49,7 +49,7 @@ export function EditableTags({
     const trimmedTag = tag.trim();
     if (trimmedTag && !editValue.includes(trimmedTag)) {
       onEditValueChange([...editValue, trimmedTag]);
-      setInputValue("");
+      // We'll handle clearing the input separately using a key instead
     }
   };
 
@@ -59,7 +59,11 @@ export function EditableTags({
 
   const handleCreateTag = () => {
     if (inputValue) {
-      handleAddTag(inputValue);
+      const trimmedTag = inputValue.trim();
+      if (trimmedTag && !editValue.includes(trimmedTag)) {
+        onEditValueChange([...editValue, trimmedTag]);
+        setInputValue("");
+      }
     }
   };
 
@@ -151,7 +155,10 @@ export function EditableTags({
                       <CommandItem 
                         key={tag} 
                         value={tag}
-                        onSelect={() => handleAddTag(tag)}
+                        onSelect={() => {
+                          handleAddTag(tag);
+                          setInputValue("");
+                        }}
                         className="text-sm flex items-center gap-2"
                       >
                         <Tag className="h-3.5 w-3.5 text-gray-500" />
