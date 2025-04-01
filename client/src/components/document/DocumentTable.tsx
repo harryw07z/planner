@@ -422,25 +422,41 @@ export const DocumentTable = memo(({
     return (
       <div 
         key={document.id} 
-        className="flex items-center h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        onClick={() => onDocumentSelect(document.id)}
       >
         {visibleColumns.map(column => (
           <div 
             key={column.id} 
-            className="flex items-center px-4 overflow-hidden"
+            className="flex items-center px-3 py-2 overflow-hidden"
             style={{ width: column.width }}
+            onClick={(e) => {
+              // Prevent row click when clicking on a cell that handles its own clicks
+              if (column.key === "title" || column.key === "tags" || 
+                  column.key === "status" || column.key === "priority" ||
+                  column.key === "assignedTo" || column.key === "dueDate") {
+                e.stopPropagation();
+              }
+            }}
           >
             {renderCellContent(document, column)}
           </div>
         ))}
         
-        <div className="flex gap-1 items-center ml-auto pr-4">
+        <div 
+          className="flex gap-1 items-center ml-auto pr-3"
+          onClick={(e) => e.stopPropagation()} // Prevent row click when clicking on favorite button
+        >
           <button 
             className={cn(
               "p-1.5 rounded-full transition-colors",
               document.favorite ? "text-yellow-500 hover:bg-yellow-50" : "text-gray-300 hover:text-yellow-500 hover:bg-gray-100"
             )}
-            onClick={(e) => onFavoriteToggle(document.id, e)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle(document.id, e);
+            }}
+            title={document.favorite ? "Remove from favorites" : "Add to favorites"}
           >
             <Star className="w-4 h-4" />
           </button>
@@ -450,16 +466,22 @@ export const DocumentTable = memo(({
   };
 
   return (
-    <div className="w-full" ref={tableRef}>
+    <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white" ref={tableRef}>
       {/* Table Header */}
-      <div className="flex h-10 bg-gray-50 border-y border-gray-200 sticky top-0 z-10">
+      <div className="flex h-10 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
         {visibleColumns.map(renderTableHeaderCell)}
         <div className="w-12"></div>
       </div>
       
       {/* Table Body */}
-      <div>
-        {documents.map(renderDocumentRow)}
+      <div className="divide-y divide-gray-100">
+        {documents.length > 0 ? (
+          documents.map(renderDocumentRow)
+        ) : (
+          <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+            No documents found
+          </div>
+        )}
       </div>
     </div>
   );

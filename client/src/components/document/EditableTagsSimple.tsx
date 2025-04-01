@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, X, Plus, Tag } from "lucide-react";
@@ -42,59 +42,67 @@ export function EditableTagsSimple({
   onEditValueChange
 }: EditableTagsProps) {
   const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Focus the input when editing starts
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [isEditing]);
 
   // Non-editable display mode
   if (!isEditing) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <div 
-              className="flex items-center gap-1 overflow-hidden cursor-pointer"
-              onDoubleClick={onStartEdit}
-            >
-              {tags && tags.length > 0 ? (
-                <>
-                  {tags.slice(0, 2).map((tag, i) => (
-                    <Badge 
-                      key={i} 
-                      variant="outline" 
-                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                  {tags.length > 2 && (
-                    <Badge variant="outline" className="bg-gray-100 text-gray-700">
+      <div
+        className="flex items-center gap-1 overflow-hidden cursor-pointer rounded hover:bg-gray-50 py-1 px-0.5 transition-colors group"
+        onClick={onStartEdit} // Changed to single-click for easier access
+      >
+        {tags && tags.length > 0 ? (
+          <div className="flex items-center gap-1 flex-wrap">
+            {tags.slice(0, 2).map((tag, i) => (
+              <Badge 
+                key={i} 
+                variant="outline" 
+                className="bg-blue-50 text-blue-700 border-blue-200 group-hover:bg-blue-100"
+              >
+                {tag}
+              </Badge>
+            ))}
+            {tags.length > 2 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="bg-gray-100 text-gray-700 cursor-help">
                       +{tags.length - 2}
                     </Badge>
-                  )}
-                </>
-              ) : (
-                <span className="text-gray-400 text-xs">No tags</span>
-              )}
-            </div>
-          </TooltipTrigger>
-          {tags && tags.length > 2 && (
-            <TooltipContent>
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium mb-1">All tags:</p>
-                <div className="flex flex-wrap gap-1">
-                  {tags.map((tag, i) => (
-                    <Badge 
-                      key={i} 
-                      variant="outline" 
-                      className="bg-blue-50 text-blue-700 border-blue-200"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent align="start" className="p-2">
+                    <div className="flex flex-wrap gap-1 max-w-48">
+                      {tags.slice(2).map((tag, i) => (
+                        <Badge 
+                          key={i} 
+                          variant="outline" 
+                          className="bg-blue-50 text-blue-700 border-blue-200"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center text-gray-400 text-xs">
+            <Tag className="h-3.5 w-3.5 mr-1" />
+            <span>Add tags</span>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -111,6 +119,18 @@ export function EditableTagsSimple({
     onEditValueChange(editValue.filter(t => t !== tag));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Add tag on Enter
+    if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
+      addTagFn(inputValue);
+    }
+    // Close and save on Escape
+    else if (e.key === 'Escape') {
+      onSave(editValue);
+    }
+  };
+
   return (
     <Popover open={true} onOpenChange={(open) => {
       if (!open) {
@@ -118,33 +138,16 @@ export function EditableTagsSimple({
       }
     }}>
       <PopoverTrigger asChild>
-        <div className="flex items-center gap-1 overflow-hidden cursor-pointer p-1 border border-dashed border-primary/40 rounded">
-          {tags && tags.length > 0 ? (
-            <>
-              {tags.slice(0, 2).map((tag, i) => (
-                <Badge 
-                  key={i} 
-                  variant="outline" 
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                >
-                  {tag}
-                </Badge>
-              ))}
-              {tags.length > 2 && (
-                <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                  +{tags.length - 2}
-                </Badge>
-              )}
-            </>
-          ) : (
-            <span className="text-gray-400 text-xs">Add tags</span>
-          )}
+        <div className="flex items-center gap-1 overflow-hidden cursor-pointer p-1 border border-dashed border-primary/40 rounded bg-white">
+          {/* This is just a placeholder during edit mode */}
+          <span className="text-xs text-primary">Editing tags...</span>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="start">
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between p-3 pb-0">
-            <h4 className="font-medium text-sm">Tags</h4>
+      <PopoverContent className="w-72 p-0 shadow-lg" align="start" sideOffset={5}>
+        <div className="flex flex-col bg-white rounded-md overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-3 border-b">
+            <h4 className="font-medium text-sm text-gray-700">Edit Tags</h4>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -155,13 +158,14 @@ export function EditableTagsSimple({
             </Button>
           </div>
           
-          <div className="px-3 py-2">
-            <div className="flex flex-wrap gap-1.5 mb-2">
+          {/* Current tags */}
+          <div className="px-3 py-2 bg-gray-50">
+            <div className="flex flex-wrap gap-1.5">
               {editValue.map((tag, i) => (
-                <Badge key={i} variant="secondary" className="px-2 py-1 text-xs">
+                <Badge key={i} variant="secondary" className="px-2 py-0.5 text-xs flex items-center">
                   {tag}
                   <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
+                    className="h-3 w-3 ml-1 cursor-pointer hover:text-red-500"
                     onClick={() => removeTagFn(tag)}
                   />
                 </Badge>
@@ -172,49 +176,56 @@ export function EditableTagsSimple({
             </div>
           </div>
           
-          <Command className="rounded-t-none border-t">
-            <CommandInput 
-              placeholder="Search or create tag..." 
-              value={inputValue}
-              onValueChange={setInputValue}
-              className="h-9"
-            />
-            <CommandList>
-              <CommandEmpty>
-                {inputValue.trim() !== "" && (
-                  <CommandItem 
-                    value={`create-${inputValue}`}
-                    onSelect={() => {
-                      if (inputValue.trim()) {
-                        addTagFn(inputValue);
-                      }
-                    }}
-                    className="text-sm flex items-center justify-center gap-2 py-3 hover:bg-blue-50"
-                  >
-                    <Plus className="h-4 w-4 text-blue-500" />
-                    Create "{inputValue}"
-                  </CommandItem>
-                )}
-              </CommandEmpty>
-              <CommandGroup heading="Suggested Tags">
-                {commonTags
-                  .filter(tag => !editValue.includes(tag) && 
-                    (inputValue === "" || tag.toLowerCase().includes(inputValue.toLowerCase())))
-                  .map(tag => (
-                    <CommandItem 
-                      key={tag} 
-                      value={tag}
-                      onSelect={() => addTagFn(tag)}
-                      className="text-sm flex items-center gap-2"
-                    >
-                      <Tag className="h-3.5 w-3.5 text-gray-500" />
-                      {tag}
-                    </CommandItem>
-                  ))
-                }
-              </CommandGroup>
-            </CommandList>
-          </Command>
+          {/* Search/create input */}
+          <div className="p-2 border-t border-b">
+            <div className="flex items-center px-2 py-1 border rounded-md bg-gray-50">
+              <Tag className="h-4 w-4 text-gray-400 mr-2" />
+              <input 
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type to add or search..."
+                className="flex-1 bg-transparent border-0 focus:ring-0 text-sm focus:outline-none"
+              />
+              {inputValue.trim() && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => addTagFn(inputValue)}
+                  className="h-6 w-6"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {/* Suggested tags */}
+          {commonTags.length > 0 && (
+            <div className="max-h-40 overflow-y-auto">
+              <div className="px-3 py-2">
+                <h5 className="text-xs font-medium text-gray-500 mb-1">SUGGESTED TAGS</h5>
+                <div className="flex flex-wrap gap-1">
+                  {commonTags
+                    .filter(tag => !editValue.includes(tag) && 
+                      (inputValue === "" || tag.toLowerCase().includes(inputValue.toLowerCase())))
+                    .map(tag => (
+                      <Badge 
+                        key={tag} 
+                        variant="outline" 
+                        className="bg-gray-50 text-gray-700 border-gray-200 cursor-pointer hover:bg-gray-100"
+                        onClick={() => addTagFn(tag)}
+                      >
+                        {tag}
+                      </Badge>
+                    ))
+                  }
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>
