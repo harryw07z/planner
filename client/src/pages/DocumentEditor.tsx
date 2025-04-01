@@ -1075,7 +1075,7 @@ const DocumentEditor = () => {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-800">Documents</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage your product requirement documents</p>
+              <p className="text-sm text-gray-500 mt-1">Manage and organize your product documentation</p>
             </div>
             
             <div className="flex gap-2">
@@ -1090,141 +1090,14 @@ const DocumentEditor = () => {
                 <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
               </div>
               
-              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    className={cn(
-                      activeTags.length > 0 || activeStatus || activePriority ? "bg-primary/10 text-primary border-primary/20" : ""
-                    )}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-0" align="end">
-                  <div className="p-3 border-b">
-                    <h3 className="font-medium text-sm">Filter documents</h3>
-                  </div>
-                  
-                  <div className="p-3 max-h-[70vh] overflow-auto">
-                    <div className="mb-4">
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">STATUS</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {["draft", "in-progress", "in-review", "complete", "archived"].map((status) => (
-                          <Badge 
-                            key={status} 
-                            variant="outline"
-                            className={cn(
-                              getStatusBadge(status as StatusType),
-                              activeStatus === status ? "ring-2 ring-offset-1 ring-primary/30" : ""
-                            )}
-                            onClick={() => toggleStatusFilter(status as StatusType)}
-                          >
-                            {status === "in-review" ? "In Review" : status.charAt(0).toUpperCase() + status.slice(1)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">PRIORITY</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {["low", "medium", "high"].map((priority) => (
-                          <Badge 
-                            key={priority} 
-                            variant="outline"
-                            className={cn(
-                              getPriorityBadge(priority as "low" | "medium" | "high"),
-                              activePriority === priority ? "ring-2 ring-offset-1 ring-primary/30" : ""
-                            )}
-                            onClick={() => togglePriorityFilter(priority as "low" | "medium" | "high")}
-                          >
-                            {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="mb-4">
-                      <h4 className="text-xs font-semibold text-gray-500 mb-2">TAGS</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {mockTags.map((tag) => (
-                          <Badge 
-                            key={tag} 
-                            variant="outline"
-                            className={cn(
-                              "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 cursor-pointer",
-                              activeTags.includes(tag) ? "ring-2 ring-offset-1 ring-primary/30" : ""
-                            )}
-                            onClick={() => toggleTagFilter(tag)}
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 border-t flex justify-end">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      disabled={!activeTags.length && !activeStatus && !activePriority && !searchQuery}
-                      onClick={clearFilters}
-                    >
-                      Clear filters
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    {viewType === "table" ? (
-                      <LayoutList className="h-4 w-4" />
-                    ) : viewType === "gallery" ? (
-                      <LayoutGrid className="h-4 w-4" />
-                    ) : (
-                      <Layout className="h-4 w-4" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>View</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className={cn("cursor-pointer", viewType === "table" && "bg-primary/10 text-primary")}
-                    onClick={() => setViewType("table")}
-                  >
-                    <LayoutList className="h-4 w-4 mr-2" />
-                    Table
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className={cn("cursor-pointer", viewType === "gallery" && "bg-primary/10 text-primary")}
-                    onClick={() => setViewType("gallery")}
-                  >
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    Gallery
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className={cn("cursor-pointer", viewType === "list" && "bg-primary/10 text-primary")}
-                    onClick={() => setViewType("list")}
-                  >
-                    <Layout className="h-4 w-4 mr-2" />
-                    List
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => setIsColumnsDialogOpen(true)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Customize columns
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button variant="outline" size="icon" 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={cn(
+                  activeTags.length > 0 || activeStatus || activePriority ? "bg-primary/10 text-primary border-primary/20" : ""
+                )}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
               
               <Button onClick={createNewDocument}>
                 <PlusCircle className="h-4 w-4 mr-2" />
@@ -1233,8 +1106,85 @@ const DocumentEditor = () => {
             </div>
           </div>
           
+          {/* Filter panel */}
+          {isFilterOpen && (
+            <div className="mt-4 p-3 border rounded-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium text-sm">Filter documents</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-8"
+                  disabled={!activeTags.length && !activeStatus && !activePriority && !searchQuery}
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 mb-2">STATUS</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {["draft", "in-progress", "in-review", "complete", "archived"].map((status) => (
+                      <Badge 
+                        key={status} 
+                        variant="outline"
+                        className={cn(
+                          getStatusBadge(status as StatusType),
+                          activeStatus === status ? "ring-2 ring-offset-1 ring-primary/30" : ""
+                        )}
+                        onClick={() => toggleStatusFilter(status as StatusType)}
+                      >
+                        {status === "in-review" ? "In Review" : status.charAt(0).toUpperCase() + status.slice(1)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 mb-2">PRIORITY</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {["low", "medium", "high"].map((priority) => (
+                      <Badge 
+                        key={priority} 
+                        variant="outline"
+                        className={cn(
+                          getPriorityBadge(priority as "low" | "medium" | "high"),
+                          activePriority === priority ? "ring-2 ring-offset-1 ring-primary/30" : ""
+                        )}
+                        onClick={() => togglePriorityFilter(priority as "low" | "medium" | "high")}
+                      >
+                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 mb-2">TAGS</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {mockTags.map((tag) => (
+                      <Badge 
+                        key={tag} 
+                        variant="outline"
+                        className={cn(
+                          "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 cursor-pointer",
+                          activeTags.includes(tag) ? "ring-2 ring-offset-1 ring-primary/30" : ""
+                        )}
+                        onClick={() => toggleTagFilter(tag)}
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Active filters display */}
-          {(activeTags.length > 0 || activeStatus || activePriority) && (
+          {(activeTags.length > 0 || activeStatus || activePriority) && !isFilterOpen && (
             <div className="mt-4 flex items-center gap-2">
               <span className="text-xs text-gray-500">Filters:</span>
               
@@ -1268,10 +1218,6 @@ const DocumentEditor = () => {
                   {tag}
                 </Badge>
               ))}
-              
-              <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={clearFilters}>
-                Clear all
-              </Button>
             </div>
           )}
         </div>
@@ -1281,9 +1227,17 @@ const DocumentEditor = () => {
           // Table View
           <div className="flex-1 flex flex-col overflow-hidden" ref={tableRef}>
             {/* Table Header Row */}
-            <div className="flex items-center h-9 border-b border-gray-200 bg-gray-50">
-              {visibleColumns.map(renderTableHeaderCell)}
-              <div className="w-24"></div> {/* Space for action buttons */}
+            <div className="flex items-center h-10 border-b border-gray-200 bg-gray-50">
+              {visibleColumns.map(column => (
+                <div 
+                  key={column.id}
+                  className="px-4 py-2 text-sm font-medium text-gray-600"
+                  style={{ width: column.width }}
+                >
+                  {column.name}
+                </div>
+              ))}
+              <div className="w-10"></div> {/* Space for favorite button */}
             </div>
             
             {/* Table Body */}
