@@ -36,7 +36,8 @@ import {
   LayoutGrid,
   LayoutList,
   GripVertical,
-  Eye
+  Eye,
+  Check
 } from "lucide-react";
 import { Document } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -576,37 +577,14 @@ const DocumentEditor = () => {
     if (isEditing) {
       return (
         <div ref={editCellRef} className="flex items-center gap-3 w-full">
-          <Popover open={editingCell?.field === "emoji"} onOpenChange={(open) => {
-            if (!open) setEditingCell(null);
-          }}>
-            <PopoverTrigger asChild>
-              <button
-                className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100"
-                onClick={() => startCellEdit(document, "emoji")}
-              >
-                <span className="text-lg">{document.emoji}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64">
-              <div className="grid grid-cols-7 gap-2">
-                {emojiOptions.map((emoji) => (
-                  <button
-                    key={emoji}
-                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100"
-                    onClick={() => {
-                      saveCellEdit(document.id, "emoji", emoji);
-                    }}
-                  >
-                    <span className="text-lg">{emoji}</span>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+          <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center cursor-pointer">
+            <span className="text-lg">{document.emoji}</span>
+          </div>
           <Input
-            className="h-8 min-w-0"
+            className="h-8 min-w-0 border-primary/30"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => saveCellEdit(document.id, "title", editValue)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 saveCellEdit(document.id, "title", editValue);
@@ -615,6 +593,7 @@ const DocumentEditor = () => {
               }
             }}
             autoFocus
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       );
@@ -624,10 +603,6 @@ const DocumentEditor = () => {
       <div className="flex items-center gap-3 w-full">
         <div 
           className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100 cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            startCellEdit(document, "emoji");
-          }}
           onDoubleClick={(e) => {
             e.stopPropagation();
             startCellEdit(document, "emoji");
@@ -706,31 +681,51 @@ const DocumentEditor = () => {
     if (isEditing) {
       return (
         <div ref={editCellRef}>
-          <DropdownMenu open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
-            <DropdownMenuTrigger asChild>
-              <Badge variant="outline" className={`${getPriorityBadge(document.priority)}`}>
-                {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
+          <Popover open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
+            <PopoverTrigger asChild>
+              <Badge variant="outline" className={`${getPriorityBadge(document.priority || "low")}`}>
+                {document.priority ? document.priority.charAt(0).toUpperCase() + document.priority.slice(1) : "None"}
                 <ChevronDown className="ml-1 h-3 w-3" />
               </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "low")}>
-                <Badge variant="outline" className={getPriorityBadge("low")}>Low</Badge>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "medium")}>
-                <Badge variant="outline" className={getPriorityBadge("medium")}>Medium</Badge>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "high")}>
-                <Badge variant="outline" className={getPriorityBadge("high")}>High</Badge>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", null)}>
-                <span className="text-gray-500 text-sm flex items-center gap-1">
-                  <X className="h-3.5 w-3.5" /> Remove priority
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-40 p-2">
+              <div className="flex flex-col gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex justify-start h-8 px-2 text-xs" 
+                  onClick={() => saveCellEdit(document.id, "priority", "low")}
+                >
+                  <Badge variant="outline" className={getPriorityBadge("low")}>Low</Badge>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex justify-start h-8 px-2 text-xs" 
+                  onClick={() => saveCellEdit(document.id, "priority", "medium")}
+                >
+                  <Badge variant="outline" className={getPriorityBadge("medium")}>Medium</Badge>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex justify-start h-8 px-2 text-xs" 
+                  onClick={() => saveCellEdit(document.id, "priority", "high")}
+                >
+                  <Badge variant="outline" className={getPriorityBadge("high")}>High</Badge>
+                </Button>
+                <Separator className="my-1" />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex justify-start h-8 px-2 text-xs text-gray-500" 
+                  onClick={() => saveCellEdit(document.id, "priority", null)}
+                >
+                  <X className="h-3.5 w-3.5 mr-1.5" /> Remove priority
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       );
     }
@@ -759,9 +754,13 @@ const DocumentEditor = () => {
     if (isEditing) {
       return (
         <div ref={editCellRef}>
-          <Popover open={true} onOpenChange={(open) => !open && saveCellEdit(document.id, "tags", editValue)}>
+          <Popover open={true} onOpenChange={(open) => {
+            if (!open) {
+              saveCellEdit(document.id, "tags", editValue);
+            }
+          }}>
             <PopoverTrigger asChild>
-              <div className="flex items-center gap-1 overflow-hidden cursor-pointer">
+              <div className="flex items-center gap-1 overflow-hidden cursor-pointer p-1 border border-dashed border-primary/40 rounded">
                 {document.tags.length > 0 ? (
                   <>
                     {document.tags.slice(0, 2).map((tag, i) => (
@@ -784,26 +783,40 @@ const DocumentEditor = () => {
                 )}
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-64">
+            <PopoverContent className="w-80">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium mb-2">Tags</h4>
-                  <div className="flex flex-wrap gap-1 mb-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Tags</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => saveCellEdit(document.id, "tags", editValue)}
+                      className="h-8 text-xs"
+                    >
+                      <Check className="h-4 w-4 mr-1" /> Save
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {editValue.map((tag: string, i: number) => (
-                      <Badge key={i} variant="secondary" className="px-2 py-1">
+                      <Badge key={i} variant="secondary" className="px-2 py-1.5 text-sm">
                         {tag}
                         <X
-                          className="h-3 w-3 ml-1 cursor-pointer"
+                          className="h-3.5 w-3.5 ml-1.5 cursor-pointer"
                           onClick={() => setEditValue(editValue.filter((t: string) => t !== tag))}
                         />
                       </Badge>
                     ))}
+                    {editValue.length === 0 && (
+                      <span className="text-gray-400 text-sm italic">No tags added yet</span>
+                    )}
                   </div>
                   
-                  <div className="flex mb-2">
+                  <div className="flex mb-4">
                     <Input
-                      placeholder="Add a tag..."
+                      placeholder="Type a tag and press Enter to add..."
                       className="text-sm"
+                      autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.currentTarget.value) {
                           const newTag = e.currentTarget.value.trim();
@@ -817,9 +830,11 @@ const DocumentEditor = () => {
                   </div>
                 </div>
                 
+                <Separator />
+                
                 <div>
                   <h4 className="text-sm font-medium mb-2">Common tags</h4>
-                  <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1">
                     {mockTags.map((tag) => (
                       <div key={tag} className="flex items-center space-x-2">
                         <Checkbox 
@@ -833,7 +848,12 @@ const DocumentEditor = () => {
                             }
                           }}
                         />
-                        <Label htmlFor={`tag-${tag}`}>{tag}</Label>
+                        <Label 
+                          htmlFor={`tag-${tag}`}
+                          className="text-sm cursor-pointer"
+                        >
+                          {tag}
+                        </Label>
                       </div>
                     ))}
                   </div>
