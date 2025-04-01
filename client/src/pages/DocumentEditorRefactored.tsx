@@ -148,10 +148,13 @@ const DocumentEditor = () => {
   
   const { toast } = useToast();
   
-  // Fetch documents
-  const { data: documents, isLoading } = useQuery({
+  // Fetch documents with aggressive refetching to ensure immediate updates
+  const { data: documents, isLoading, refetch } = useQuery({
     queryKey: ['/api/documents'],
     queryFn: () => apiRequest('GET', '/api/documents').then(res => res.json()),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Consider data always stale to force refetch
   });
 
   // Process documents from the API and add any missing metadata
@@ -263,7 +266,7 @@ const DocumentEditor = () => {
     e.stopPropagation();
     
     // Update the document's favorite status via API
-    const document = documentsWithMetadata.find(doc => doc.id === documentId);
+    const document = documentsWithMetadata.find((doc: DocumentWithMetadata) => doc.id === documentId);
     if (document) {
       apiRequest('PUT', `/api/documents/${documentId}`, { 
         favorite: !document.favorite
@@ -506,6 +509,11 @@ const DocumentEditor = () => {
             sortDirection={sortDirection}
             commonTags={MOCK_TAGS}
             mockUsers={MOCK_USERS}
+            onStatusChange={(documentId, newStatus) => {
+              console.log(`Status changed for document ${documentId} to ${newStatus}`);
+              // Force explicit refetch after status change
+              refetch();
+            }}
           />
         )}
       </div>

@@ -71,6 +71,7 @@ interface DocumentTableProps {
   sortDirection: 'asc' | 'desc';
   commonTags: string[];
   mockUsers: Array<{ id: number, name: string, initials: string }>;
+  onStatusChange?: (documentId: number, newStatus: StatusType) => void;
 }
 
 export const DocumentTable = memo(({
@@ -83,7 +84,8 @@ export const DocumentTable = memo(({
   sortField,
   sortDirection,
   commonTags,
-  mockUsers
+  mockUsers,
+  onStatusChange
 }: DocumentTableProps) => {
   // Get editable document hooks
   const {
@@ -202,12 +204,25 @@ export const DocumentTable = memo(({
         onSelect={(value) => {
           console.log(`Status selection: ${document.status} → ${value}`);
           if (value !== document.status) {
+            // Update document with new status
             apiRequest('PUT', `/api/documents/${document.id}`, { status: value })
               .then((res: Response) => {
                 if (res.ok) {
-                  // Force a refetch of documents
-                  queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
                   console.log(`Status updated to ${value} successfully`);
+                  
+                  // Force immediate refresh of all document data
+                  queryClient.refetchQueries({ 
+                    queryKey: ['/api/documents'],
+                    exact: true, // Only refetch the exact query
+                    type: 'active' // Only refetch queries that are currently active/mounted
+                  });
+                  
+                  // Also manually update the document in the local UI while waiting for refetch
+                  const updatedDocument = {...document, status: value};
+                  // Notify parent components a change has occurred (optional)
+                  if (onStatusChange) {
+                    onStatusChange(document.id, value);
+                  }
                 } else {
                   console.error(`Error updating status: ${res.statusText}`);
                 }
