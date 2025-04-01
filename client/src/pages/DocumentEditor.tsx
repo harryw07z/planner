@@ -61,6 +61,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
@@ -70,7 +71,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 // Define document status types
-type StatusType = "draft" | "in-review" | "approved" | "archived";
+type StatusType = "draft" | "in-progress" | "in-review" | "complete" | "archived";
 
 // Define view types
 type ViewType = "table" | "gallery" | "list";
@@ -122,9 +123,11 @@ const getStatusBadge = (status: StatusType) => {
   switch (status) {
     case "draft":
       return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-    case "in-review":
+    case "in-progress":
       return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-    case "approved":
+    case "in-review":
+      return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+    case "complete":
       return "bg-green-100 text-green-800 hover:bg-green-200";
     case "archived":
       return "bg-gray-100 text-gray-800 hover:bg-gray-200";
@@ -220,7 +223,7 @@ const DocumentEditor = () => {
     
     return {
       ...doc,
-      status: doc.id % 4 === 0 ? "approved" : doc.id % 3 === 0 ? "in-review" : doc.id % 2 === 0 ? "archived" : "draft",
+      status: doc.id % 5 === 0 ? "complete" : doc.id % 4 === 0 ? "in-progress" : doc.id % 3 === 0 ? "in-review" : doc.id % 2 === 0 ? "archived" : "draft",
       tags: [
         index % 3 === 0 ? "Product" : "",
         index % 2 === 0 ? "Feature" : "",
@@ -476,83 +479,471 @@ const DocumentEditor = () => {
   };
 
   // Render a single cell content
+  // State for cell editing
+  const [editingCell, setEditingCell] = useState<{ documentId: number, field: string } | null>(null);
+  const [editValue, setEditValue] = useState<any>(null);
+  
+  // Reference for blur handling
+  const editCellRef = useRef<HTMLDivElement>(null);
+  
+  // Handler for starting cell edit
+  const startCellEdit = (document: DocumentWithMetadata, field: string) => {
+    setEditingCell({ documentId: document.id, field });
+    
+    // Set initial edit value based on field
+    switch (field) {
+      case "title":
+        setEditValue(document.title);
+        break;
+      case "status":
+        setEditValue(document.status);
+        break;
+      case "priority":
+        setEditValue(document.priority);
+        break;
+      case "tags":
+        setEditValue([...document.tags]);
+        break;
+      case "emoji":
+        setEditValue(document.emoji);
+        break;
+      case "assignee":
+        setEditValue(document.assignee);
+        break;
+      case "dueDate":
+        setEditValue(document.dueDate);
+        break;
+      default:
+        setEditValue(null);
+    }
+  };
+  
+  // Handler for saving cell edits
+  const saveCellEdit = async (documentId: number, field: string, value: any) => {
+    try {
+      // Prepare update data
+      const updateData: Record<string, any> = {};
+      updateData[field] = value;
+      
+      // Make API call to update document
+      const response = await apiRequest('PATCH', `/api/documents/${documentId}`, updateData);
+      const updatedDoc = await response.json();
+      
+      // Update client state
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      
+      toast({
+        title: "Updated successfully",
+        description: `Document ${field} has been updated.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update document",
+        variant: "destructive",
+      });
+    }
+    
+    // Reset editing state
+    setEditingCell(null);
+    setEditValue(null);
+  };
+  
+  // Handler for canceling cell edit
+  const cancelCellEdit = () => {
+    setEditingCell(null);
+    setEditValue(null);
+  };
+  
+  // Effect to handle click outside of editing cell
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (editCellRef.current && !editCellRef.current.contains(event.target as Node)) {
+        // If we're editing and clicked outside, save the edit
+        if (editingCell && editValue !== null) {
+          saveCellEdit(editingCell.documentId, editingCell.field, editValue);
+        }
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [editingCell, editValue]);
+  
+  const renderEditableTitle = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "title";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef} className="flex items-center gap-3 w-full">
+          <Popover open={editingCell?.field === "emoji"} onOpenChange={(open) => {
+            if (!open) setEditingCell(null);
+          }}>
+            <PopoverTrigger asChild>
+              <button
+                className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100"
+                onClick={() => startCellEdit(document, "emoji")}
+              >
+                <span className="text-lg">{document.emoji}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64">
+              <div className="grid grid-cols-7 gap-2">
+                {emojiOptions.map((emoji) => (
+                  <button
+                    key={emoji}
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100"
+                    onClick={() => {
+                      saveCellEdit(document.id, "emoji", emoji);
+                    }}
+                  >
+                    <span className="text-lg">{emoji}</span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Input
+            className="h-8 min-w-0"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                saveCellEdit(document.id, "title", editValue);
+              } else if (e.key === 'Escape') {
+                cancelCellEdit();
+              }
+            }}
+            autoFocus
+          />
+        </div>
+      );
+    }
+    
+    return (
+      <div 
+        className="flex items-center gap-3 w-full cursor-text"
+        onClick={() => startCellEdit(document, "title")}
+      >
+        <div 
+          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100"
+          onClick={(e) => {
+            e.stopPropagation();
+            startCellEdit(document, "emoji");
+          }}
+        >
+          <span className="text-lg">{document.emoji}</span>
+        </div>
+        <div className="truncate font-medium">
+          {document.title}
+        </div>
+      </div>
+    );
+  };
+  
+  const renderEditableStatus = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "status";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef}>
+          <DropdownMenu open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
+            <DropdownMenuTrigger asChild>
+              <Badge variant="outline" className={`${getStatusBadge(document.status)}`}>
+                {document.status === "in-review" ? "In Review" : document.status.charAt(0).toUpperCase() + document.status.slice(1)}
+                <ChevronDown className="ml-1 h-3 w-3" />
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "status", "draft")}>
+                <Badge variant="outline" className={getStatusBadge("draft")}>Draft</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "status", "in-progress")}>
+                <Badge variant="outline" className={getStatusBadge("in-progress")}>In Progress</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "status", "in-review")}>
+                <Badge variant="outline" className={getStatusBadge("in-review")}>In Review</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "status", "complete")}>
+                <Badge variant="outline" className={getStatusBadge("complete")}>Complete</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "status", "archived")}>
+                <Badge variant="outline" className={getStatusBadge("archived")}>Archived</Badge>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    }
+    
+    return (
+      <Badge 
+        variant="outline" 
+        className={`${getStatusBadge(document.status)} cursor-pointer`}
+        onClick={() => startCellEdit(document, "status")}
+      >
+        {document.status === "in-review" ? "In Review" : document.status.charAt(0).toUpperCase() + document.status.slice(1)}
+      </Badge>
+    );
+  };
+  
+  const renderEditablePriority = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "priority";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef}>
+          <DropdownMenu open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
+            <DropdownMenuTrigger asChild>
+              <Badge variant="outline" className={`${getPriorityBadge(document.priority)}`}>
+                {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
+                <ChevronDown className="ml-1 h-3 w-3" />
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "low")}>
+                <Badge variant="outline" className={getPriorityBadge("low")}>Low</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "medium")}>
+                <Badge variant="outline" className={getPriorityBadge("medium")}>Medium</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "high")}>
+                <Badge variant="outline" className={getPriorityBadge("high")}>High</Badge>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    }
+    
+    return (
+      <Badge 
+        variant="outline" 
+        className={`${getPriorityBadge(document.priority)} cursor-pointer`}
+        onClick={() => startCellEdit(document, "priority")}
+      >
+        {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
+      </Badge>
+    );
+  };
+  
+  const renderEditableTags = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "tags";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef}>
+          <Popover open={true} onOpenChange={(open) => !open && saveCellEdit(document.id, "tags", editValue)}>
+            <PopoverTrigger asChild>
+              <div className="flex items-center gap-1 overflow-hidden cursor-pointer">
+                {document.tags.length > 0 ? (
+                  <>
+                    {document.tags.slice(0, 2).map((tag, i) => (
+                      <Badge 
+                        key={i} 
+                        variant="outline" 
+                        className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                    {document.tags.length > 2 && (
+                      <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                        +{document.tags.length - 2}
+                      </Badge>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-gray-400 text-xs">Add tags</span>
+                )}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-64">
+              <div className="space-y-2">
+                <h4 className="font-medium">Tags</h4>
+                <div className="space-y-1">
+                  {mockTags.map((tag) => (
+                    <div key={tag} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`tag-${tag}`}
+                        checked={editValue.includes(tag)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setEditValue([...editValue, tag]);
+                          } else {
+                            setEditValue(editValue.filter((t: string) => t !== tag));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`tag-${tag}`}>{tag}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      );
+    }
+    
+    return (
+      <div 
+        className="flex items-center gap-1 overflow-hidden cursor-pointer"
+        onClick={() => startCellEdit(document, "tags")}
+      >
+        {document.tags.length > 0 ? (
+          <>
+            {document.tags.slice(0, 2).map((tag, i) => (
+              <Badge 
+                key={i} 
+                variant="outline" 
+                className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+              >
+                {tag}
+              </Badge>
+            ))}
+            {document.tags.length > 2 && (
+              <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                +{document.tags.length - 2}
+              </Badge>
+            )}
+          </>
+        ) : (
+          <span className="text-gray-400 text-xs">No tags</span>
+        )}
+      </div>
+    );
+  };
+  
+  const renderEditableAssignee = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "assignee";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef}>
+          <DropdownMenu open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer">
+                <Avatar className="h-6 w-6">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {document.assignee.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm truncate">{document.assignee}</span>
+                <ChevronDown className="h-3 w-3" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {mockUsers.map((user) => (
+                <DropdownMenuItem key={user.id} onClick={() => saveCellEdit(document.id, "assignee", user.name)}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        {user.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">{user.name}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    }
+    
+    return (
+      <div 
+        className="flex items-center gap-2 cursor-pointer"
+        onClick={() => startCellEdit(document, "assignee")}
+      >
+        <Avatar className="h-6 w-6">
+          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+            {document.assignee.split(' ').map(n => n[0]).join('')}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm truncate">{document.assignee}</span>
+      </div>
+    );
+  };
+  
+  const renderEditableDueDate = (document: DocumentWithMetadata) => {
+    const isEditing = editingCell?.documentId === document.id && editingCell?.field === "dueDate";
+    
+    if (isEditing) {
+      return (
+        <div ref={editCellRef}>
+          <Popover open={true} onOpenChange={(open) => !open && cancelCellEdit()}>
+            <PopoverTrigger asChild>
+              {document.dueDate ? (
+                <div className="flex items-center gap-1 text-sm text-gray-700 cursor-pointer">
+                  <Clock className="h-3.5 w-3.5 text-gray-400" />
+                  <span>{formatDate(new Date(document.dueDate))}</span>
+                </div>
+              ) : (
+                <div className="text-gray-400 text-xs cursor-pointer">Set date</div>
+              )}
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={editValue ? new Date(editValue) : undefined}
+                onSelect={(date: Date | undefined) => {
+                  if (date) {
+                    saveCellEdit(document.id, "dueDate", date.toISOString());
+                  } else {
+                    saveCellEdit(document.id, "dueDate", null);
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      );
+    }
+    
+    return document.dueDate ? (
+      <div 
+        className="flex items-center gap-1 text-sm text-gray-700 cursor-pointer"
+        onClick={() => startCellEdit(document, "dueDate")}
+      >
+        <Clock className="h-3.5 w-3.5 text-gray-400" />
+        <span>{formatDate(new Date(document.dueDate))}</span>
+      </div>
+    ) : (
+      <span 
+        className="text-gray-400 text-xs cursor-pointer"
+        onClick={() => startCellEdit(document, "dueDate")}
+      >
+        No date
+      </span>
+    );
+  };
+  
   const renderCellContent = (document: DocumentWithMetadata, column: ColumnType) => {
     const key = column.key as string;
     
     switch (key) {
       case "title":
-        return (
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center">
-              <span className="text-lg">{document.emoji}</span>
-            </div>
-            <div className="truncate font-medium">
-              {document.title}
-            </div>
-          </div>
-        );
+        return renderEditableTitle(document);
         
       case "status":
-        return (
-          <Badge variant="outline" className={`${getStatusBadge(document.status)}`}>
-            {document.status === "in-review" ? "In Review" : document.status.charAt(0).toUpperCase() + document.status.slice(1)}
-          </Badge>
-        );
+        return renderEditableStatus(document);
         
       case "priority":
-        return (
-          <Badge variant="outline" className={`${getPriorityBadge(document.priority)}`}>
-            {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
-          </Badge>
-        );
+        return renderEditablePriority(document);
         
       case "tags":
-        return (
-          <div className="flex items-center gap-1 overflow-hidden">
-            {document.tags.length > 0 ? (
-              <>
-                {document.tags.slice(0, 2).map((tag, i) => (
-                  <Badge 
-                    key={i} 
-                    variant="outline" 
-                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-                {document.tags.length > 2 && (
-                  <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                    +{document.tags.length - 2}
-                  </Badge>
-                )}
-              </>
-            ) : (
-              <span className="text-gray-400 text-xs">No tags</span>
-            )}
-          </div>
-        );
+        return renderEditableTags(document);
         
       case "assignee":
-        return (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                {document.assignee.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm truncate">{document.assignee}</span>
-          </div>
-        );
+        return renderEditableAssignee(document);
         
       case "dueDate":
-        return document.dueDate ? (
-          <div className="flex items-center gap-1 text-sm text-gray-700">
-            <Clock className="h-3.5 w-3.5 text-gray-400" />
-            <span>{formatDate(new Date(document.dueDate))}</span>
-          </div>
-        ) : (
-          <span className="text-gray-400 text-xs">No date</span>
-        );
+        return renderEditableDueDate(document);
         
       case "updatedAt":
       case "createdAt":
@@ -740,7 +1131,7 @@ const DocumentEditor = () => {
                     <div className="mb-4">
                       <h4 className="text-xs font-semibold text-gray-500 mb-2">STATUS</h4>
                       <div className="flex flex-wrap gap-2">
-                        {["draft", "in-review", "approved", "archived"].map((status) => (
+                        {["draft", "in-progress", "in-review", "complete", "archived"].map((status) => (
                           <Badge 
                             key={status} 
                             variant="outline"
@@ -1249,7 +1640,7 @@ const DocumentEditor = () => {
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56">
-                              {["draft", "in-review", "approved", "archived"].map((status) => (
+                              {["draft", "in-progress", "in-review", "complete", "archived"].map((status) => (
                                 <DropdownMenuItem key={status} className="cursor-pointer">
                                   <Badge variant="outline" className={getStatusBadge(status as StatusType)}>
                                     {status === "in-review" ? "In Review" : status.charAt(0).toUpperCase() + status.slice(1)}

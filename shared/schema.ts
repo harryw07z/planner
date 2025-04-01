@@ -142,7 +142,7 @@ export type RoadmapEvent = typeof roadmapEvents.$inferSelect;
 export type InsertRoadmapEvent = z.infer<typeof insertRoadmapEventSchema>;
 
 // Additional types for document interface
-export type StatusType = 'draft' | 'in-progress' | 'in-review' | 'complete';
+export type StatusType = 'draft' | 'in-progress' | 'in-review' | 'complete' | 'archived';
 export type PriorityType = 'low' | 'medium' | 'high';
 export type ViewType = 'table' | 'gallery' | 'list';
 export type SortDirection = 'asc' | 'desc';
