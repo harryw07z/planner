@@ -21,6 +21,13 @@ export const documents = pgTable("documents", {
   title: text("title").notNull(),
   content: text("content"),
   projectId: integer("project_id").notNull(),
+  emoji: text("emoji").default("📄"),
+  status: text("status").default("draft").notNull(), // draft, in-progress, in-review, complete
+  priority: text("priority").default("medium"), // low, medium, high
+  tags: text("tags").array(),
+  favorite: boolean("favorite").default(false),
+  assignedTo: text("assigned_to"),
+  dueDate: timestamp("due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -75,6 +82,13 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   title: true,
   content: true,
   projectId: true,
+  emoji: true,
+  status: true,
+  priority: true,
+  tags: true,
+  favorite: true,
+  assignedTo: true,
+  dueDate: true,
 });
 
 export const insertMaterialSchema = createInsertSchema(materials).pick({
@@ -126,3 +140,44 @@ export type InsertFeature = z.infer<typeof insertFeatureSchema>;
 
 export type RoadmapEvent = typeof roadmapEvents.$inferSelect;
 export type InsertRoadmapEvent = z.infer<typeof insertRoadmapEventSchema>;
+
+// Additional types for document interface
+export type StatusType = 'draft' | 'in-progress' | 'in-review' | 'complete';
+export type PriorityType = 'low' | 'medium' | 'high';
+export type ViewType = 'table' | 'gallery' | 'list';
+export type SortDirection = 'asc' | 'desc';
+
+export interface ColumnType {
+  id: string;
+  label: string;
+  width: number;
+  sortable: boolean;
+  visible: boolean;
+  type: 'text' | 'date' | 'status' | 'priority' | 'emoji' | 'tags' | 'user';
+}
+
+export interface DocumentCustom {
+  createdBy: string;
+  wordCount: number;
+  estimatedReadTime: string;
+  lastEdited: string;
+  lastEditedBy: string;
+  comments: number;
+}
+
+export interface DocumentWithMetadata {
+  id: number;
+  title: string;
+  content: string | null;
+  projectId: number;
+  emoji: string;
+  status: StatusType;
+  priority: PriorityType;
+  tags: string[];
+  favorite: boolean;
+  assignedTo: string | null;
+  dueDate: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  custom?: DocumentCustom;
+}

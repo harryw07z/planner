@@ -34,14 +34,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Documents API
   apiRouter.get("/documents", async (req, res) => {
-    const projectId = parseInt(req.query.projectId as string);
-    
-    if (isNaN(projectId)) {
-      return res.status(400).json({ message: "Invalid project ID" });
+    if (req.query.projectId) {
+      const projectId = parseInt(req.query.projectId as string);
+      
+      if (isNaN(projectId)) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
+      
+      const documents = await storage.getDocumentsByProjectId(projectId);
+      res.json(documents);
+    } else {
+      // If no projectId is provided, return all documents for demo
+      // Use project ID 1 as default for the demo
+      const documents = await storage.getDocumentsByProjectId(1);
+      res.json(documents);
     }
-    
-    const documents = await storage.getDocumentsByProjectId(projectId);
-    res.json(documents);
   });
 
   apiRouter.get("/documents/:id", async (req, res) => {
@@ -57,7 +64,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.post("/documents", async (req, res) => {
     try {
-      const validatedData = insertDocumentSchema.parse(req.body);
+      // Add default projectId if not provided
+      const documentData = {
+        ...req.body,
+        projectId: req.body.projectId || 1 // Default projectId for demo
+      };
+      const validatedData = insertDocumentSchema.parse(documentData);
       const document = await storage.createDocument(validatedData);
       res.status(201).json(document);
     } catch (error) {
@@ -75,6 +87,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Document not found" });
       }
       
+      // Set content type explicitly to ensure it's treated as JSON
+      res.setHeader('Content-Type', 'application/json');
+      // Also set X-API-Response to help identify API responses
+      res.setHeader('X-API-Response', 'true');
+      res.json(document);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid document data", error });
+    }
+  });
+  
+  apiRouter.patch("/documents/:id", async (req, res) => {
+    const documentId = parseInt(req.params.id);
+    
+    try {
+      const document = await storage.updateDocument(documentId, req.body);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Set content type explicitly to ensure it's treated as JSON
+      res.setHeader('Content-Type', 'application/json');
+      // Also set X-API-Response to help identify API responses
+      res.setHeader('X-API-Response', 'true');
       res.json(document);
     } catch (error) {
       res.status(400).json({ message: "Invalid document data", error });
