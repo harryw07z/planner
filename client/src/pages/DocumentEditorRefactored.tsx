@@ -27,7 +27,6 @@ interface DocumentWithMetadata {
   status: StatusType;
   priority: PriorityType;
   tags: string[];
-  favorite: boolean;
   assignedTo: string | null;
   dueDate: string | null;
   createdAt: string;
@@ -39,7 +38,6 @@ import {
   PlusCircle, 
   Search, 
   Filter,
-  Star,
   X,
 } from "lucide-react";
 import {
@@ -177,7 +175,7 @@ const DocumentEditor = () => {
         priority: doc.priority || (index % 3 === 0 ? "high" : index % 2 === 0 ? "medium" : "low"),
         assignedTo: doc.assignedTo || MOCK_USERS[index % MOCK_USERS.length].name,
         dueDate: doc.dueDate || (index % 3 === 0 ? getRandomDate(new Date(), new Date(new Date().setMonth(new Date().getMonth() + 2))).toISOString() : undefined),
-        favorite: doc.favorite !== undefined ? doc.favorite : index % 5 === 0,
+
         emoji: doc.emoji || EMOJI_OPTIONS[index % EMOJI_OPTIONS.length],
         custom: {
           createdBy: MOCK_USERS[index % MOCK_USERS.length].name,
@@ -261,29 +259,7 @@ const DocumentEditor = () => {
     setIsFullscreen(false);
   }, []);
 
-  // Toggle favorite status
-  const toggleFavorite = useCallback((documentId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Update the document's favorite status via API
-    const document = documentsWithMetadata.find((doc: DocumentWithMetadata) => doc.id === documentId);
-    if (document) {
-      apiRequest('PUT', `/api/documents/${documentId}`, { 
-        favorite: !document.favorite
-      })
-      .then(response => {
-        if (response.ok) {
-          console.log(`Updated favorite status for document ${documentId}`);
-          // Force immediate refresh of document data
-          queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-          
-          // Also refetch specific document data if needed
-          queryClient.invalidateQueries({ queryKey: [`/api/documents/${documentId}`] });
-        }
-      })
-      .catch(error => console.error("Error updating favorite status:", error));
-    }
-  }, [documentsWithMetadata]);
+  // Removed favorite toggle functionality
 
   // Toggle column visibility
   const toggleColumnVisibility = useCallback((columnId: string, visible: boolean) => {

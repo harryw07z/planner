@@ -25,7 +25,6 @@ export const documents = pgTable("documents", {
   status: text("status").default("draft").notNull(), // draft, in-progress, in-review, complete
   priority: text("priority").default("medium"), // low, medium, high
   tags: text("tags").array(),
-  favorite: boolean("favorite").default(false),
   assignedTo: text("assigned_to"),
   dueDate: timestamp("due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -86,7 +85,6 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   status: true,
   priority: true,
   tags: true,
-  favorite: true,
   assignedTo: true,
   dueDate: true,
 });
@@ -174,7 +172,6 @@ export interface DocumentWithMetadata {
   status: StatusType;
   priority: PriorityType;
   tags: string[];
-  favorite: boolean;
   assignedTo: string | null;
   dueDate: Date | null;
   createdAt: Date;
