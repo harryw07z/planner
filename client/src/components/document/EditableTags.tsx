@@ -134,17 +134,14 @@ export function EditableTags({
               />
               <CommandList>
                 <CommandEmpty>
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="text-sm text-gray-600">No matches found</span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={handleCreateTag}
-                      className="h-7 text-xs gap-1"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Create "{inputValue}"
-                    </Button>
-                  </div>
+                  <CommandItem 
+                    value={`create-${inputValue}`}
+                    onSelect={handleCreateTag}
+                    className="text-sm flex items-center justify-center gap-2 py-3 hover:bg-blue-50"
+                  >
+                    <Plus className="h-4 w-4 text-blue-500" />
+                    Create "{inputValue}"
+                  </CommandItem>
                 </CommandEmpty>
                 <CommandGroup heading="Suggested Tags">
                   {commonTags
@@ -163,18 +160,7 @@ export function EditableTags({
                     ))
                   }
                 </CommandGroup>
-                {inputValue && !commonTags.some(tag => tag.toLowerCase() === inputValue.toLowerCase()) && !editValue.includes(inputValue) && (
-                  <CommandGroup heading="Create New">
-                    <CommandItem 
-                      value={`create-${inputValue}`}
-                      onSelect={handleCreateTag}
-                      className="text-sm flex items-center gap-2"
-                    >
-                      <Plus className="h-3.5 w-3.5 text-gray-500" />
-                      Create "{inputValue}"
-                    </CommandItem>
-                  </CommandGroup>
-                )}
+
               </CommandList>
             </Command>
           </div>
