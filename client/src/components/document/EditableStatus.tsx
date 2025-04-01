@@ -48,31 +48,33 @@ export function EditableStatus({
 
   if (isEditing) {
     return (
-      <DropdownMenu open={true} onOpenChange={(open) => !open && onStartEdit()}>
-        <DropdownMenuTrigger asChild>
-          <Badge variant="outline" className={getStatusBadge(status)}>
-            {formatStatusLabel(status)}
-            <ChevronDown className="ml-1 h-3 w-3" />
-          </Badge>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => onSelect("draft")}>
-            <Badge variant="outline" className={getStatusBadge("draft")}>Draft</Badge>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSelect("in-progress")}>
-            <Badge variant="outline" className={getStatusBadge("in-progress")}>In Progress</Badge>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSelect("in-review")}>
-            <Badge variant="outline" className={getStatusBadge("in-review")}>In Review</Badge>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSelect("complete")}>
-            <Badge variant="outline" className={getStatusBadge("complete")}>Complete</Badge>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSelect("archived")}>
-            <Badge variant="outline" className={getStatusBadge("archived")}>Archived</Badge>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="relative z-10">
+        <DropdownMenu defaultOpen={true} onOpenChange={(open) => !open && onSelect(status)}>
+          <DropdownMenuTrigger asChild>
+            <Badge variant="outline" className={getStatusBadge(status)}>
+              {formatStatusLabel(status)}
+              <ChevronDown className="ml-1 h-3 w-3" />
+            </Badge>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("draft")}>
+              <Badge variant="outline" className={getStatusBadge("draft")}>Draft</Badge>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("in-progress")}>
+              <Badge variant="outline" className={getStatusBadge("in-progress")}>In Progress</Badge>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("in-review")}>
+              <Badge variant="outline" className={getStatusBadge("in-review")}>In Review</Badge>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("complete")}>
+              <Badge variant="outline" className={getStatusBadge("complete")}>Complete</Badge>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("archived")}>
+              <Badge variant="outline" className={getStatusBadge("archived")}>Archived</Badge>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     );
   }
   
