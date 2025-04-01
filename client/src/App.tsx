@@ -2,7 +2,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/Sidebar";
-import DocumentEditor from "@/pages/DocumentEditor";
+import DocumentEditor from "@/pages/DocumentEditorRefactored";
 import RoadmapCalendar from "@/pages/RoadmapCalendar";
 import ResearchMaterials from "@/pages/ResearchMaterials";
 import { Bell, Settings, HelpCircle, Search } from "lucide-react";
