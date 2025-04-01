@@ -81,11 +81,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const documentId = parseInt(req.params.id);
     
     try {
-      const document = await storage.updateDocument(documentId, req.body);
-      
-      if (!document) {
+      // Get the current document first to ensure we don't lose fields not specified in the request
+      const existingDocument = await storage.getDocument(documentId);
+      if (!existingDocument) {
         return res.status(404).json({ message: "Document not found" });
       }
+      
+      // When updating partial fields like 'status' or 'favorite', we need to ensure
+      // we don't lose existing data like tags or other metadata
+      // This is especially important for fields like arrays which need to be preserved
+      const updateData = req.body;
+      
+      // For array fields like tags, we need to make sure we don't lose them
+      // Only include them from request if explicitly defined
+      if (updateData.tags === undefined && existingDocument.tags) {
+        updateData.tags = existingDocument.tags;
+      }
+      
+      // Now perform the update with preserved data
+      const document = await storage.updateDocument(documentId, updateData);
       
       // Set content type explicitly to ensure it's treated as JSON
       res.setHeader('Content-Type', 'application/json');
@@ -101,11 +115,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const documentId = parseInt(req.params.id);
     
     try {
-      const document = await storage.updateDocument(documentId, req.body);
-      
-      if (!document) {
+      // Get the current document first to ensure we don't lose fields not specified in the request
+      const existingDocument = await storage.getDocument(documentId);
+      if (!existingDocument) {
         return res.status(404).json({ message: "Document not found" });
       }
+      
+      // Using PATCH to update partial fields, we need to ensure to preserve existing data
+      const updateData = req.body;
+      
+      // For array fields like tags, we need to make sure we don't lose them if not explicitly sent
+      if (updateData.tags === undefined && existingDocument.tags) {
+        updateData.tags = existingDocument.tags;
+      }
+      
+      // Now perform the update with preserved data
+      const document = await storage.updateDocument(documentId, updateData);
       
       // Set content type explicitly to ensure it's treated as JSON
       res.setHeader('Content-Type', 'application/json');

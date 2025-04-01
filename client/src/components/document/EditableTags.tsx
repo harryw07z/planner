@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface EditableTagsProps {
-  tags: string[];
+  tags: string[] | null | undefined;
   isEditing: boolean;
   editValue: string[];
   commonTags: string[];
@@ -77,7 +77,7 @@ export function EditableTags({
       }}>
         <PopoverTrigger asChild>
           <div className="flex items-center gap-1 overflow-hidden cursor-pointer p-1 border border-dashed border-primary/40 rounded">
-            {tags.length > 0 ? (
+            {tags && tags.length > 0 ? (
               <>
                 {tags.slice(0, 2).map((tag, i) => (
                   <Badge 
@@ -177,7 +177,7 @@ export function EditableTags({
             className="flex items-center gap-1 overflow-hidden cursor-pointer"
             onDoubleClick={onStartEdit}
           >
-            {tags.length > 0 ? (
+            {tags && tags.length > 0 ? (
               <>
                 {tags.slice(0, 2).map((tag, i) => (
                   <Badge 
@@ -199,7 +199,7 @@ export function EditableTags({
             )}
           </div>
         </TooltipTrigger>
-        {tags.length > 2 && (
+        {tags && tags.length > 2 && (
           <TooltipContent>
             <div className="flex flex-col gap-1">
               <p className="text-xs font-medium mb-1">All tags:</p>

@@ -46,7 +46,14 @@ export function useDocumentEditing() {
   // Start cell editing
   const startCellEdit = (documentId: number, field: string, initialValue: any) => {
     setEditingCell({ documentId, field });
-    setEditValue(initialValue);
+    
+    // Handle special cases for certain fields
+    if (field === 'tags' && (initialValue === null || initialValue === undefined)) {
+      // Initialize with empty array if tags are missing
+      setEditValue([]);
+    } else {
+      setEditValue(initialValue);
+    }
   };
 
   // Save cell edit
