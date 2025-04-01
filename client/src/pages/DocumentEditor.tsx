@@ -287,10 +287,7 @@ const DocumentEditor = () => {
     // Here we would navigate to a document detail page
     console.log(`Navigating to document: ${documentId}`);
     
-    // In a real app with proper routing, you would do:
-    // navigate(`/documents/${documentId}`);
-    
-    // For now, we'll open the editor as a placeholder
+    // Open the editor directly (a real app would use routing)
     const selectedDoc = documentsWithMetadata.find(doc => doc.id === documentId);
     if (selectedDoc) {
       setSelectedDocumentId(documentId);
@@ -647,6 +644,8 @@ const DocumentEditor = () => {
             }}
             onDoubleClick={(e) => {
               e.stopPropagation();
+              e.preventDefault();
+              // Direct inline edit on double-click
               startCellEdit(document, "title");
             }}
           >
