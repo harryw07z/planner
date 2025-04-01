@@ -35,7 +35,7 @@ import { EditableStatus } from './EditableStatus';
 import { EditableTagsSimple } from './EditableTagsSimple';
 import { EditableTitle } from './EditableTitle';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, SortAsc, Star, X } from "lucide-react";
+import { Clock, SortAsc, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -64,7 +64,6 @@ interface DocumentTableProps {
   documents: DocumentWithMetadata[];
   columns: ColumnType[];
   onDocumentSelect: (documentId: number) => void;
-  onFavoriteToggle: (documentId: number, e: React.MouseEvent) => void;
   onResizeColumn: (columnId: string, width: number) => void;
   onToggleSort: (field: string) => void;
   sortField: string;
@@ -78,7 +77,6 @@ export const DocumentTable = memo(({
   documents,
   columns,
   onDocumentSelect,
-  onFavoriteToggle,
   onResizeColumn,
   onToggleSort,
   sortField,
@@ -442,25 +440,6 @@ export const DocumentTable = memo(({
             {renderCellContent(document, column)}
           </div>
         ))}
-        
-        <div 
-          className="flex gap-1 items-center ml-auto pr-3"
-          onClick={(e) => e.stopPropagation()} // Prevent row click when clicking on favorite button
-        >
-          <button 
-            className={cn(
-              "p-1.5 rounded-full transition-colors",
-              document.favorite ? "text-yellow-500 hover:bg-yellow-50" : "text-gray-300 hover:text-yellow-500 hover:bg-gray-100"
-            )}
-            onClick={(e) => {
-              e.stopPropagation();
-              onFavoriteToggle(document.id, e);
-            }}
-            title={document.favorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Star className="w-4 h-4" />
-          </button>
-        </div>
       </div>
     );
   };
@@ -470,7 +449,6 @@ export const DocumentTable = memo(({
       {/* Table Header */}
       <div className="flex h-10 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
         {visibleColumns.map(renderTableHeaderCell)}
-        <div className="w-12"></div>
       </div>
       
       {/* Table Body */}

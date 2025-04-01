@@ -502,7 +502,6 @@ const DocumentEditor = () => {
             documents={sortedDocuments}
             columns={columns}
             onDocumentSelect={handleDocumentSelect}
-            onFavoriteToggle={toggleFavorite}
             onResizeColumn={handleResizeColumn}
             onToggleSort={toggleSort}
             sortField={sortField}
