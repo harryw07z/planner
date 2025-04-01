@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Upload, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { apiRequest } from "@/lib/queryClient";
 
 interface FileUploadProps {

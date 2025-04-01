@@ -3,7 +3,7 @@ import { MaterialAnalysis } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Info, CheckCircle, RefreshCw } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface AnalysisResultsProps {

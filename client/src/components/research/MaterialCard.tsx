@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FileUp, FileText, FileSpreadsheet, File, Eye, BarChart, Download, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Material } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { formatFileSize, formatDate, getFileIconColor } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 

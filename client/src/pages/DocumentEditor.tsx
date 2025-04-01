@@ -40,7 +40,7 @@ import {
   Check
 } from "lucide-react";
 import { Document } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/utils";
 import { 

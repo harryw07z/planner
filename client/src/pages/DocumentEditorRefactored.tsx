@@ -34,7 +34,7 @@ interface DocumentWithMetadata {
   updatedAt: string;
   custom?: DocumentCustom;
 };
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { 
   PlusCircle, 
   Search, 
@@ -214,9 +214,9 @@ const DocumentEditor = () => {
           ? new Date(a[sortField]).getTime() - new Date(b[sortField]).getTime()
           : new Date(b[sortField]).getTime() - new Date(a[sortField]).getTime();
       } else if (sortField === "priority") {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        const aValue = a.priority ? priorityOrder[a.priority] : 0;
-        const bValue = b.priority ? priorityOrder[b.priority] : 0;
+        const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+        const aValue = a.priority && typeof a.priority === 'string' ? priorityOrder[a.priority] || 0 : 0;
+        const bValue = b.priority && typeof b.priority === 'string' ? priorityOrder[b.priority] || 0 : 0;
         return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
       } else {
         return 0;
@@ -230,7 +230,7 @@ const DocumentEditor = () => {
     console.log(`Navigating to document: ${documentId}`);
     
     // Open the editor directly (a real app would use routing)
-    const selectedDoc = documentsWithMetadata.find(doc => doc.id === documentId);
+    const selectedDoc = documentsWithMetadata.find((doc: DocumentWithMetadata) => doc.id === documentId);
     if (selectedDoc) {
       setSelectedDocumentId(documentId);
       setTitle(selectedDoc.title);
@@ -386,7 +386,7 @@ const DocumentEditor = () => {
           
           <div className="px-6 flex-grow overflow-auto">
             <RichTextEditor
-              value={content}
+              content={content}
               onChange={setContent}
             />
           </div>

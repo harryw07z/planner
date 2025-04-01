@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import FeatureCard from "@/components/roadmap/FeatureCard";
 import CalendarGrid from "@/components/roadmap/CalendarGrid";
 import { Feature, PriorityLevel } from "@/lib/types";

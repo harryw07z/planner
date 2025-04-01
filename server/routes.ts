@@ -280,6 +280,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const features = await storage.getFeaturesByProjectId(projectId);
     res.json(features);
   });
+  
+  // Generate feature ideas using AI
+  apiRouter.post("/features/generate", async (req, res) => {
+    try {
+      const { projectId, description, count = 5 } = req.body;
+      
+      if (!projectId || !description) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Generate feature ideas
+      const featureIdeas = await openai.generateFeatureIdeas(description, count);
+      
+      // Create feature objects for response
+      const features = featureIdeas.map(idea => ({
+        ...idea,
+        projectId
+      }));
+      
+      res.status(200).json(features);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating feature ideas", error: error.message });
+    }
+  });
 
   apiRouter.post("/features", async (req, res) => {
     try {
