@@ -642,12 +642,6 @@ const DocumentEditor = () => {
               e.stopPropagation();
               handleDocumentSelect(document.id);
             }}
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              // Direct inline edit on double-click
-              startCellEdit(document, "title");
-            }}
           >
             {document.title}
           </div>
