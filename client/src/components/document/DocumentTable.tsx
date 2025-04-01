@@ -18,6 +18,7 @@ import {
   horizontalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ColumnSuggestionsPopover } from './ColumnSuggestionsPopover';
 
 // Simplified DocumentWithMetadata interface to avoid schema import
 interface DocumentCustom {
@@ -158,13 +159,11 @@ export const DocumentTable = memo(({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [visibleColumnsState, setVisibleColumnsState] = useState<ColumnType[]>([]);
   
-  // Get visible columns from props
-  const visibleColumns = columns.filter(column => column.visible);
-  
   // Update visible columns state when columns prop changes
   useEffect(() => {
-    setVisibleColumnsState(visibleColumns);
-  }, [columns, visibleColumns]);
+    const filtered = columns.filter(column => column.visible);
+    setVisibleColumnsState(filtered);
+  }, [columns]);
 
   // Set up sensors for drag and drop
   const sensors = useSensors(
@@ -563,11 +562,34 @@ export const DocumentTable = memo(({
         )}
       </div>
       
-      {/* Visual affordance for dragging */}
+      {/* Table footer with tips and AI suggestions */}
       <div className="p-4 bg-blue-50 text-blue-800 text-sm rounded-b-lg border-t border-blue-100">
-        <div className="flex items-center gap-2">
-          <div className="p-1 bg-blue-100 rounded-sm text-blue-700 font-medium text-xs">Tip</div>
-          <div>Drag and drop column headers to rearrange columns</div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-blue-100 rounded-sm text-blue-700 font-medium text-xs">Tip</div>
+            <div>Drag and drop column headers to rearrange columns</div>
+          </div>
+          
+          {/* Import and use in the component JSX */}
+          {documents.length > 0 && (
+            <ColumnSuggestionsPopover 
+              documents={documents}
+              columns={visibleColumnsState}
+              onApplySuggestion={(layout) => {
+                // Find the columns that match the keys in the layout
+                const newColumnOrder = layout
+                  .map(key => visibleColumnsState.find(col => col.key === key))
+                  .filter(Boolean) as ColumnType[];
+                
+                // Add any columns that weren't in the layout at the end
+                const remainingColumns = visibleColumnsState.filter(
+                  col => !layout.includes(col.key)
+                );
+                
+                setVisibleColumnsState([...newColumnOrder, ...remainingColumns]);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -4,3 +4,4 @@ export * from './EditableTitle';
 export * from './EditablePriority';
 export * from './EditableStatus';
 export * from './DocumentTable';
+export * from './ColumnSuggestionsPopover';

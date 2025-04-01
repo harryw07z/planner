@@ -139,6 +139,70 @@ export class AIService {
       throw new Error("Failed to generate feature ideas: " + error.message);
     }
   }
+  
+  /**
+   * Generate column customization suggestions based on documents and user behavior
+   */
+  async generateColumnSuggestions(
+    documentData: Array<any>, 
+    currentColumns: Array<{id: string, name: string, key: string}>,
+    userRole: string = 'product manager'
+  ): Promise<{ 
+    suggestions: Array<{
+      name: string;
+      layout: Array<string>;
+      description: string;
+    }> 
+  }> {
+    try {
+      // Prepare a summary of the document data for the AI
+      const documentSummary = documentData.slice(0, 3).map(doc => {
+        return {
+          title: doc.title,
+          status: doc.status,
+          priority: doc.priority,
+          tags: doc.tags,
+          hasAssignee: !!doc.assignedTo,
+          hasDueDate: !!doc.dueDate
+        };
+      });
+      
+      // Current column setup
+      const columnSetup = currentColumns.map(col => col.name).join(', ');
+      
+      const response = await this.client.chat.completions.create({
+        model: this.defaultModel,
+        messages: [
+          {
+            role: "system",
+            content: `You are an AI assistant that specializes in optimizing workflows for product managers, 
+            designers, and engineers. Your task is to analyze document data and suggest better column 
+            layouts for document tables. Focus on creating layouts that help ${userRole}s be more 
+            productive based on the types of documents they work with. 
+            
+            Return a JSON object with a "suggestions" array containing objects with "name", "layout" (array of column keys), 
+            and "description" (explaining why this layout is beneficial). Be specific, concise, and practical.`
+          },
+          {
+            role: "user",
+            content: `I am a ${userRole} working with these documents: ${JSON.stringify(documentSummary)}. 
+            My current column layout is: ${columnSetup}. 
+            Suggest 3 better layouts for organizing my document table. Focus on which columns should be displayed 
+            and in what order to optimize my workflow.`
+          }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      // Handle potential null content
+      const content = response.choices[0].message.content || '{"suggestions":[]}';
+      const parsed = JSON.parse(content);
+      return parsed;
+    } catch (error: any) {
+      console.error("Failed to generate column suggestions:", error);
+      throw new Error("Failed to generate column suggestions: " + error.message);
+    }
+  }
 }
 
 // Create default instance using XAI as the provider
