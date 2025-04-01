@@ -1,6 +1,23 @@
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo, useCallback } from 'react';
 import { StatusType, PriorityType } from '@/hooks/useDocumentEditing';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Simplified DocumentWithMetadata interface to avoid schema import
 interface DocumentCustom {
@@ -21,7 +38,6 @@ interface DocumentWithMetadata {
   status: StatusType;
   priority: PriorityType;
   tags: string[];
-  favorite: boolean;
   assignedTo: string | null;
   dueDate: string | null;
   createdAt: string;
@@ -138,26 +154,92 @@ export const DocumentTable = memo(({
     };
   }, []);
 
-  // Get visible columns
+  // Get visible columns and manage dragging state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [visibleColumnsState, setVisibleColumnsState] = useState<ColumnType[]>([]);
+  
+  // Get visible columns from props
   const visibleColumns = columns.filter(column => column.visible);
+  
+  // Update visible columns state when columns prop changes
+  useEffect(() => {
+    setVisibleColumnsState(visibleColumns);
+  }, [columns, visibleColumns]);
 
-  // Render table header cell
-  const renderTableHeaderCell = (column: ColumnType) => {
+  // Set up sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end event
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = visibleColumnsState.findIndex(col => col.id === active.id);
+      const newIndex = visibleColumnsState.findIndex(col => col.id === over.id);
+      
+      // Reorder columns
+      const newColumns = arrayMove(visibleColumnsState, oldIndex, newIndex);
+      setVisibleColumnsState(newColumns);
+      
+      // You could add a callback here to persist column order if needed
+      console.log("Column order changed:", newColumns.map(col => col.name).join(', '));
+    }
+    
+    setActiveId(null);
+  }, [visibleColumnsState]);
+
+  // Sortable header cell component
+  const SortableHeaderCell = memo(({ column }: { column: ColumnType }) => {
     const isSortable = ["title", "updatedAt", "createdAt", "priority", "dueDate"].includes(column.key);
     const isSorted = sortField === column.key;
     
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging
+    } = useSortable({ id: column.id });
+    
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      width: column.width,
+      zIndex: isDragging ? 10 : 1,
+      opacity: isDragging ? 0.8 : 1,
+    };
+    
     return (
       <div 
-        key={column.id}
-        className="group relative flex items-center h-full whitespace-nowrap"
-        style={{ width: column.width }}
+        ref={setNodeRef}
+        style={style}
+        className={cn(
+          "group relative flex items-center h-full whitespace-nowrap",
+          isDragging && "bg-gray-100 shadow-md rounded"
+        )}
+        {...attributes}
+        {...listeners}
       >
         <div 
           className={cn(
-            "flex items-center gap-1 text-xs font-medium text-gray-500 px-4 py-2 select-none whitespace-nowrap",
+            "flex items-center gap-1 text-xs font-medium text-gray-500 px-4 py-2 select-none whitespace-nowrap w-full",
             isSortable && "cursor-pointer hover:text-gray-700"
           )}
-          onClick={() => isSortable && onToggleSort(column.key)}
+          onClick={(e) => {
+            // Prevent column reordering when clicking to sort
+            e.stopPropagation();
+            if (isSortable) onToggleSort(column.key);
+          }}
         >
           {column.name}
           {isSorted && (
@@ -168,11 +250,16 @@ export const DocumentTable = memo(({
         {/* Resizer */}
         <div 
           className="absolute right-0 top-0 h-full w-1 cursor-col-resize group-hover:bg-gray-300"
-          onMouseDown={(e) => handleResizeStart(e, column.id, column.width)}
+          onMouseDown={(e) => {
+            e.stopPropagation(); // Prevent drag from starting when resizing
+            handleResizeStart(e, column.id, column.width);
+          }}
         ></div>
       </div>
     );
-  };
+  });
+  
+  SortableHeaderCell.displayName = 'SortableHeaderCell';
 
   // Render title cell
   const renderTitleCell = (document: DocumentWithMetadata) => {
@@ -423,7 +510,7 @@ export const DocumentTable = memo(({
         className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors whitespace-nowrap"
         onClick={() => onDocumentSelect(document.id)}
       >
-        {visibleColumns.map(column => (
+        {visibleColumnsState.map(column => (
           <div 
             key={column.id} 
             className="flex items-center px-3 py-2 overflow-hidden whitespace-nowrap text-ellipsis"
@@ -446,10 +533,24 @@ export const DocumentTable = memo(({
 
   return (
     <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white" ref={tableRef}>
-      {/* Table Header */}
-      <div className="flex h-10 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-        {visibleColumns.map(renderTableHeaderCell)}
-      </div>
+      {/* Table Header with Drag and Drop */}
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={(event) => setActiveId(event.active.id as string)}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex h-10 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+          <SortableContext 
+            items={visibleColumnsState.map(col => col.id)} 
+            strategy={horizontalListSortingStrategy}
+          >
+            {visibleColumnsState.map(column => (
+              <SortableHeaderCell key={column.id} column={column} />
+            ))}
+          </SortableContext>
+        </div>
+      </DndContext>
       
       {/* Table Body */}
       <div className="divide-y divide-gray-100">
@@ -460,6 +561,14 @@ export const DocumentTable = memo(({
             No documents found
           </div>
         )}
+      </div>
+      
+      {/* Visual affordance for dragging */}
+      <div className="p-4 bg-blue-50 text-blue-800 text-sm rounded-b-lg border-t border-blue-100">
+        <div className="flex items-center gap-2">
+          <div className="p-1 bg-blue-100 rounded-sm text-blue-700 font-medium text-xs">Tip</div>
+          <div>Drag and drop column headers to rearrange columns</div>
+        </div>
       </div>
     </div>
   );
