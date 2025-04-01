@@ -1,12 +1,14 @@
 import { StatusType } from "@/hooks/useDocumentEditing";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface EditableStatusProps {
   status: StatusType;
@@ -33,44 +35,57 @@ const getStatusBadge = (status: StatusType): string => {
   }
 };
 
+// Format status label (e.g., convert "in-review" to "In Review")
+const formatStatusLabel = (status: StatusType): string => {
+  return status === "in-review" 
+    ? "In Review" 
+    : status === "in-progress"
+      ? "In Progress"
+      : status.charAt(0).toUpperCase() + status.slice(1);
+};
+
 export function EditableStatus({ 
   status, 
   isEditing, 
   onStartEdit, 
   onSelect 
 }: EditableStatusProps) {
-  // Format status label (e.g., convert "in-review" to "In Review")
-  const formatStatusLabel = (status: StatusType): string => {
-    return status === "in-review" 
-      ? "In Review" 
-      : status.charAt(0).toUpperCase() + status.slice(1);
+  const [isOpen, setIsOpen] = useState(isEditing);
+  
+  // Handle item selection
+  const handleSelectStatus = (newStatus: StatusType) => {
+    if (newStatus !== status) {
+      console.log(`Changing status from ${status} to ${newStatus}`);
+      onSelect(newStatus);
+    }
+    setIsOpen(false);
   };
 
   if (isEditing) {
     return (
-      <div className="relative z-10">
-        <DropdownMenu defaultOpen={true} onOpenChange={(open) => !open && onSelect(status)}>
+      <div className="relative z-50">
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
-            <Badge variant="outline" className={getStatusBadge(status)}>
+            <div className={`inline-flex items-center px-3 py-1 rounded-full gap-1 text-sm cursor-pointer ${getStatusBadge(status)}`}>
               {formatStatusLabel(status)}
-              <ChevronDown className="ml-1 h-3 w-3" />
-            </Badge>
+              <ChevronDown className="h-3 w-3" />
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("draft")}>
-              <Badge variant="outline" className={getStatusBadge("draft")}>Draft</Badge>
+          <DropdownMenuContent align="start" className="z-50">
+            <DropdownMenuItem className="cursor-pointer focus:bg-yellow-50" onClick={() => handleSelectStatus("draft")}>
+              <div className={`px-3 py-1 rounded-full ${getStatusBadge("draft")}`}>Draft</div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("in-progress")}>
-              <Badge variant="outline" className={getStatusBadge("in-progress")}>In Progress</Badge>
+            <DropdownMenuItem className="cursor-pointer focus:bg-blue-50" onClick={() => handleSelectStatus("in-progress")}>
+              <div className={`px-3 py-1 rounded-full ${getStatusBadge("in-progress")}`}>In Progress</div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("in-review")}>
-              <Badge variant="outline" className={getStatusBadge("in-review")}>In Review</Badge>
+            <DropdownMenuItem className="cursor-pointer focus:bg-purple-50" onClick={() => handleSelectStatus("in-review")}>
+              <div className={`px-3 py-1 rounded-full ${getStatusBadge("in-review")}`}>In Review</div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("complete")}>
-              <Badge variant="outline" className={getStatusBadge("complete")}>Complete</Badge>
+            <DropdownMenuItem className="cursor-pointer focus:bg-green-50" onClick={() => handleSelectStatus("complete")}>
+              <div className={`px-3 py-1 rounded-full ${getStatusBadge("complete")}`}>Complete</div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onSelect("archived")}>
-              <Badge variant="outline" className={getStatusBadge("archived")}>Archived</Badge>
+            <DropdownMenuItem className="cursor-pointer focus:bg-gray-50" onClick={() => handleSelectStatus("archived")}>
+              <div className={`px-3 py-1 rounded-full ${getStatusBadge("archived")}`}>Archived</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -79,12 +94,11 @@ export function EditableStatus({
   }
   
   return (
-    <Badge 
-      variant="outline" 
-      className={`${getStatusBadge(status)} cursor-pointer`}
+    <div 
+      className={`inline-flex items-center px-3 py-1 rounded-full text-sm cursor-pointer ${getStatusBadge(status)}`}
       onDoubleClick={onStartEdit}
     >
       {formatStatusLabel(status)}
-    </Badge>
+    </div>
   );
 }

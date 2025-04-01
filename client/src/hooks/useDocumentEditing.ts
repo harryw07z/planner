@@ -52,14 +52,9 @@ export function useDocumentEditing() {
   // Save cell edit
   const saveCellEdit = async (documentId: number, field: string, value: any) => {
     try {
-      // Only update if the value has actually changed
-      const currentValue = editValue;
-      if (value !== currentValue) {
-        console.log(`Updating document ${documentId}, field ${field}: ${value}`);
-        await updateDocumentMutation.mutateAsync({ documentId, field, value });
-      } else {
-        console.log(`No change detected in ${field}, skipping update`);
-      }
+      console.log(`Attempting to update ${field} to:`, value);
+      // Always update when called directly (assume value has changed)
+      await updateDocumentMutation.mutateAsync({ documentId, field, value });
     } catch (error) {
       console.error(`Failed to update ${field}:`, error);
     } finally {
