@@ -642,6 +642,10 @@ const DocumentEditor = () => {
               e.stopPropagation();
               handleDocumentSelect(document.id);
             }}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              startCellEdit(document, "title");
+            }}
           >
             {document.title}
           </div>
@@ -689,7 +693,7 @@ const DocumentEditor = () => {
       <Badge 
         variant="outline" 
         className={`${getStatusBadge(document.status)} cursor-pointer`}
-        onClick={() => startCellEdit(document, "status")}
+        onDoubleClick={() => startCellEdit(document, "status")}
       >
         {document.status === "in-review" ? "In Review" : document.status.charAt(0).toUpperCase() + document.status.slice(1)}
       </Badge>
@@ -720,7 +724,7 @@ const DocumentEditor = () => {
                 <Badge variant="outline" className={getPriorityBadge("high")}>High</Badge>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "none")}>
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", null)}>
                 <span className="text-gray-500 text-sm flex items-center gap-1">
                   <X className="h-3.5 w-3.5" /> Remove priority
                 </span>
@@ -731,18 +735,18 @@ const DocumentEditor = () => {
       );
     }
     
-    return document.priority && document.priority !== "none" ? (
+    return document.priority ? (
       <Badge 
         variant="outline" 
         className={`${getPriorityBadge(document.priority)} cursor-pointer`}
-        onClick={() => startCellEdit(document, "priority")}
+        onDoubleClick={() => startCellEdit(document, "priority")}
       >
         {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
       </Badge>
     ) : (
       <span 
         className="text-gray-400 text-xs cursor-pointer"
-        onClick={() => startCellEdit(document, "priority")}
+        onDoubleClick={() => startCellEdit(document, "priority")}
       >
         Set priority
       </span>
@@ -847,7 +851,7 @@ const DocumentEditor = () => {
           <TooltipTrigger>
             <div 
               className="flex items-center gap-1 overflow-hidden cursor-pointer"
-              onClick={() => startCellEdit(document, "tags")}
+              onDoubleClick={() => startCellEdit(document, "tags")}
             >
               {document.tags.length > 0 ? (
                 <>
@@ -934,7 +938,7 @@ const DocumentEditor = () => {
     return (
       <div 
         className="flex items-center gap-2 cursor-pointer"
-        onClick={() => startCellEdit(document, "assignee")}
+        onDoubleClick={() => startCellEdit(document, "assignee")}
       >
         <Avatar className="h-6 w-6">
           <AvatarFallback className="text-xs bg-primary/10 text-primary">
@@ -985,7 +989,7 @@ const DocumentEditor = () => {
     return document.dueDate ? (
       <div 
         className="flex items-center gap-1 text-sm text-gray-700 cursor-pointer"
-        onClick={() => startCellEdit(document, "dueDate")}
+        onDoubleClick={() => startCellEdit(document, "dueDate")}
       >
         <Clock className="h-3.5 w-3.5 text-gray-400" />
         <span>{formatDate(new Date(document.dueDate))}</span>
@@ -993,7 +997,7 @@ const DocumentEditor = () => {
     ) : (
       <span 
         className="text-gray-400 text-xs cursor-pointer"
-        onClick={() => startCellEdit(document, "dueDate")}
+        onDoubleClick={() => startCellEdit(document, "dueDate")}
       >
         No date
       </span>
