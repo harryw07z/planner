@@ -151,12 +151,12 @@ export const DocumentTable = memo(({
     return (
       <div 
         key={column.id}
-        className="group relative flex items-center h-full"
+        className="group relative flex items-center h-full whitespace-nowrap"
         style={{ width: column.width }}
       >
         <div 
           className={cn(
-            "flex items-center gap-1 text-xs font-medium text-gray-500 px-4 py-2 select-none",
+            "flex items-center gap-1 text-xs font-medium text-gray-500 px-4 py-2 select-none whitespace-nowrap",
             isSortable && "cursor-pointer hover:text-gray-700"
           )}
           onClick={() => isSortable && onToggleSort(column.key)}
@@ -400,7 +400,7 @@ export const DocumentTable = memo(({
       case "updatedAt":
       case "createdAt":
         return (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 whitespace-nowrap">
             {formatDate(new Date(document[key]))}
           </span>
         );
@@ -408,7 +408,7 @@ export const DocumentTable = memo(({
       default:
         if (document.custom && document.custom[key as keyof typeof document.custom]) {
           return (
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 whitespace-nowrap">
               {document.custom[key as keyof typeof document.custom]}
             </span>
           );
@@ -422,13 +422,13 @@ export const DocumentTable = memo(({
     return (
       <div 
         key={document.id} 
-        className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors whitespace-nowrap"
         onClick={() => onDocumentSelect(document.id)}
       >
         {visibleColumns.map(column => (
           <div 
             key={column.id} 
-            className="flex items-center px-3 py-2 overflow-hidden"
+            className="flex items-center px-3 py-2 overflow-hidden whitespace-nowrap text-ellipsis"
             style={{ width: column.width }}
             onClick={(e) => {
               // Prevent row click when clicking on a cell that handles its own clicks

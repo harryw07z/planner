@@ -57,18 +57,18 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 
-// Common constants
+// Common constants - adjusted widths to prevent text wrapping
 const DEFAULT_COLUMNS = [
-  { id: "col-1", name: "Title", key: "title", visible: true, width: 300 },
-  { id: "col-2", name: "Status", key: "status", visible: true, width: 120 },
-  { id: "col-3", name: "Last Updated", key: "updatedAt", visible: true, width: 150 },
-  { id: "col-4", name: "Tags", key: "tags", visible: true, width: 180 },
-  { id: "col-5", name: "Priority", key: "priority", visible: true, width: 120 },
-  { id: "col-6", name: "Assignee", key: "assignedTo", visible: true, width: 150 },
-  { id: "col-7", name: "Due Date", key: "dueDate", visible: false, width: 120 },
-  { id: "col-8", name: "Created At", key: "createdAt", visible: false, width: 150 },
-  { id: "col-9", name: "Created By", key: "createdBy", visible: false, width: 150 },
-  { id: "col-10", name: "Comments", key: "comments", visible: false, width: 100 },
+  { id: "col-1", name: "Title", key: "title", visible: true, width: 360 },
+  { id: "col-2", name: "Status", key: "status", visible: true, width: 140 },
+  { id: "col-3", name: "Last Updated", key: "updatedAt", visible: true, width: 160 },
+  { id: "col-4", name: "Tags", key: "tags", visible: true, width: 200 },
+  { id: "col-5", name: "Priority", key: "priority", visible: true, width: 130 },
+  { id: "col-6", name: "Assignee", key: "assignedTo", visible: true, width: 180 },
+  { id: "col-7", name: "Due Date", key: "dueDate", visible: false, width: 160 },
+  { id: "col-8", name: "Created At", key: "createdAt", visible: false, width: 160 },
+  { id: "col-9", name: "Created By", key: "createdBy", visible: false, width: 180 },
+  { id: "col-10", name: "Comments", key: "comments", visible: false, width: 120 },
 ];
 
 const EMOJI_OPTIONS = [
