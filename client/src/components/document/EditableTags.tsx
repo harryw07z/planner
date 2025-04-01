@@ -1,10 +1,8 @@
 import { useRef, useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Plus, Search, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Popover,
@@ -17,6 +15,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 interface EditableTagsProps {
   tags: string[] | null | undefined;
@@ -37,15 +43,13 @@ export function EditableTags({
   onSave,
   onEditValueChange
 }: EditableTagsProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState("");
 
-  const handleAddTag = () => {
-    if (inputRef.current && inputRef.current.value) {
-      const newTag = inputRef.current.value.trim();
-      if (newTag && !editValue.includes(newTag)) {
-        onEditValueChange([...editValue, newTag]);
-        inputRef.current.value = '';
-      }
+  const handleAddTag = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (trimmedTag && !editValue.includes(trimmedTag)) {
+      onEditValueChange([...editValue, trimmedTag]);
+      setInputValue("");
     }
   };
 
@@ -53,18 +57,9 @@ export function EditableTags({
     onEditValueChange(editValue.filter(t => t !== tag));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-
-  const handleToggleTag = (tag: string, checked: boolean) => {
-    if (checked) {
-      onEditValueChange([...editValue, tag]);
-    } else {
-      onEditValueChange(editValue.filter(t => t !== tag));
+  const handleCreateTag = () => {
+    if (inputValue) {
+      handleAddTag(inputValue);
     }
   };
 
@@ -99,70 +94,89 @@ export function EditableTags({
             )}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Tags</h4>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onSave(editValue)}
-                  className="h-8 text-xs"
-                >
-                  <Check className="h-4 w-4 mr-1" /> Save
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mb-3">
+        <PopoverContent className="w-72 p-0" align="start">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between p-3 pb-0">
+              <h4 className="font-medium text-sm">Tags</h4>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onSave(editValue)}
+                className="h-7 text-xs"
+              >
+                <Check className="h-3.5 w-3.5 mr-1" /> Done
+              </Button>
+            </div>
+            
+            <div className="px-3 py-2">
+              <div className="flex flex-wrap gap-1.5 mb-2">
                 {editValue.map((tag, i) => (
-                  <Badge key={i} variant="secondary" className="px-2 py-1.5 text-sm">
+                  <Badge key={i} variant="secondary" className="px-2 py-1 text-xs">
                     {tag}
                     <X
-                      className="h-3.5 w-3.5 ml-1.5 cursor-pointer"
+                      className="h-3 w-3 ml-1 cursor-pointer"
                       onClick={() => handleRemoveTag(tag)}
                     />
                   </Badge>
                 ))}
                 {editValue.length === 0 && (
-                  <span className="text-gray-400 text-sm italic">No tags added yet</span>
+                  <span className="text-gray-400 text-xs italic">No tags added yet</span>
                 )}
               </div>
-              
-              <div className="flex mb-4">
-                <Input
-                  ref={inputRef}
-                  placeholder="Type a tag and press Enter to add..."
-                  className="text-sm"
-                  autoFocus
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
             </div>
             
-            <Separator />
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2">Common tags</h4>
-              <div className="grid grid-cols-2 gap-1">
-                {commonTags.map((tag) => (
-                  <div key={tag} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`tag-${tag}`}
-                      checked={editValue.includes(tag)}
-                      onCheckedChange={(checked) => {
-                        handleToggleTag(tag, checked as boolean);
-                      }}
-                    />
-                    <Label 
-                      htmlFor={`tag-${tag}`}
-                      className="text-sm cursor-pointer"
+            <Command className="rounded-t-none border-t">
+              <CommandInput 
+                placeholder="Search or create tag..." 
+                value={inputValue}
+                onValueChange={setInputValue}
+                className="h-9"
+              />
+              <CommandList>
+                <CommandEmpty>
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <span className="text-sm text-gray-600">No matches found</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={handleCreateTag}
+                      className="h-7 text-xs gap-1"
                     >
-                      {tag}
-                    </Label>
+                      <Plus className="h-3.5 w-3.5" /> Create "{inputValue}"
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
+                </CommandEmpty>
+                <CommandGroup heading="Suggested Tags">
+                  {commonTags
+                    .filter(tag => !editValue.includes(tag) && 
+                      (inputValue === "" || tag.toLowerCase().includes(inputValue.toLowerCase())))
+                    .map(tag => (
+                      <CommandItem 
+                        key={tag} 
+                        value={tag}
+                        onSelect={() => handleAddTag(tag)}
+                        className="text-sm flex items-center gap-2"
+                      >
+                        <Tag className="h-3.5 w-3.5 text-gray-500" />
+                        {tag}
+                      </CommandItem>
+                    ))
+                  }
+                </CommandGroup>
+                {inputValue && !commonTags.some(tag => tag.toLowerCase() === inputValue.toLowerCase()) && !editValue.includes(inputValue) && (
+                  <CommandGroup heading="Create New">
+                    <CommandItem 
+                      value={`create-${inputValue}`}
+                      onSelect={handleCreateTag}
+                      className="text-sm flex items-center gap-2"
+                    >
+                      <Plus className="h-3.5 w-3.5 text-gray-500" />
+                      Create "{inputValue}"
+                    </CommandItem>
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
           </div>
         </PopoverContent>
       </Popover>
