@@ -24,12 +24,19 @@ export function useDocumentEditing() {
       const updateData: Record<string, any> = {};
       updateData[field] = value;
       
-      const response = await apiRequest('PATCH', `/api/documents/${documentId}`, updateData);
+      // Use PUT for more consistent behavior
+      const response = await apiRequest('PUT', `/api/documents/${documentId}`, updateData);
+      if (!response.ok) {
+        throw new Error(`Failed to update document: ${response.statusText}`);
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedDocument) => {
       // Update client state without toasts
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      
+      // Log success for debugging
+      console.log('Document updated successfully:', updatedDocument);
     },
     onError: (error: any) => {
       console.error(`Failed to update document:`, error);
@@ -45,14 +52,21 @@ export function useDocumentEditing() {
   // Save cell edit
   const saveCellEdit = async (documentId: number, field: string, value: any) => {
     try {
-      await updateDocumentMutation.mutateAsync({ documentId, field, value });
+      // Only update if the value has actually changed
+      const currentValue = editValue;
+      if (value !== currentValue) {
+        console.log(`Updating document ${documentId}, field ${field}: ${value}`);
+        await updateDocumentMutation.mutateAsync({ documentId, field, value });
+      } else {
+        console.log(`No change detected in ${field}, skipping update`);
+      }
     } catch (error) {
       console.error(`Failed to update ${field}:`, error);
+    } finally {
+      // Always reset editing state when done, even if there was an error
+      setEditingCell(null);
+      setEditValue(null);
     }
-    
-    // Reset editing state
-    setEditingCell(null);
-    setEditValue(null);
   };
 
   // Cancel cell edit

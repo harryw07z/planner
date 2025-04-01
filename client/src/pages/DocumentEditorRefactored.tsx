@@ -226,20 +226,29 @@ const DocumentEditor = () => {
 
   // Document selection handler
   const handleDocumentSelect = useCallback((documentId: number) => {
-    // Here we would navigate to a document detail page
     console.log(`Navigating to document: ${documentId}`);
     
-    // Open the editor directly (a real app would use routing)
-    const selectedDoc = documentsWithMetadata.find((doc: DocumentWithMetadata) => doc.id === documentId);
-    if (selectedDoc) {
-      setSelectedDocumentId(documentId);
-      setTitle(selectedDoc.title);
-      setContent(selectedDoc.content || "");
-      setEmoji(selectedDoc.emoji || "📄");
-      setIsDocumentOpen(true);
-      setIsFullscreen(false);
-    }
-  }, [documentsWithMetadata]);
+    // Fetch the latest document data directly from the server
+    apiRequest('GET', `/api/documents/${documentId}`)
+      .then(res => res.json())
+      .then((document) => {
+        // Update editor state with fresh data from server
+        setSelectedDocumentId(documentId);
+        setTitle(document.title);
+        setContent(document.content || "");
+        setEmoji(document.emoji || "📄");
+        setIsDocumentOpen(true);
+        setIsFullscreen(false);
+      })
+      .catch(error => {
+        console.error("Failed to load document:", error);
+        toast({
+          title: "Failed to load document",
+          description: "There was an error loading the document. Please try again.",
+          variant: "destructive",
+        });
+      });
+  }, [toast]);
 
   // Create new document
   const createNewDocument = useCallback(() => {
@@ -301,16 +310,31 @@ const DocumentEditor = () => {
       } else {
         return apiRequest('POST', '/api/documents', {
           title,
-          content
+          content,
+          projectId: 1, // Default project ID
+          status: 'draft', // Default status
+          priority: 'medium', // Default priority
+          tags: [] // Default empty tags
         }).then(res => res.json());
       }
     },
-    onSuccess: () => {
+    onSuccess: (savedDocument) => {
+      // Show success message
       toast({
         title: "Document saved",
         description: "Your document has been saved successfully.",
       });
+      
+      // Update local state if document is still open
+      if (savedDocument && selectedDocumentId === savedDocument.id) {
+        setTitle(savedDocument.title);
+        setContent(savedDocument.content || "");
+      }
+      
+      // Refresh document list
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      
+      // Close dialog if not in fullscreen mode
       if (!isFullscreen) {
         setIsDocumentOpen(false);
       }
