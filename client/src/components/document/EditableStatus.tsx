@@ -54,10 +54,10 @@ export function EditableStatus({
   
   // Handle item selection
   const handleSelectStatus = (newStatus: StatusType) => {
-    if (newStatus !== status) {
-      console.log(`Changing status from ${status} to ${newStatus}`);
-      onSelect(newStatus);
-    }
+    console.log(`Selecting status: ${newStatus}`);
+    // Always call onSelect to communicate with parent component
+    onSelect(newStatus);
+    // Always close dropdown after selection
     setIsOpen(false);
   };
 

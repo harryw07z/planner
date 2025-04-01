@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { StatusType, PriorityType } from '@/hooks/useDocumentEditing';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 // Simplified DocumentWithMetadata interface to avoid schema import
 interface DocumentCustom {
@@ -198,7 +199,24 @@ export const DocumentTable = memo(({
         status={document.status}
         isEditing={isEditing}
         onStartEdit={() => startCellEdit(document.id, "status", document.status)}
-        onSelect={(value) => saveCellEdit(document.id, "status", value)}
+        onSelect={(value) => {
+          console.log(`Status selection: ${document.status} → ${value}`);
+          if (value !== document.status) {
+            apiRequest('PUT', `/api/documents/${document.id}`, { status: value })
+              .then((res: Response) => {
+                if (res.ok) {
+                  // Force a refetch of documents
+                  queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+                  console.log(`Status updated to ${value} successfully`);
+                } else {
+                  console.error(`Error updating status: ${res.statusText}`);
+                }
+                return res.json();
+              })
+              .catch((err: Error) => console.error('Error updating status:', err));
+          }
+          cancelCellEdit();
+        }}
       />
     );
   };
