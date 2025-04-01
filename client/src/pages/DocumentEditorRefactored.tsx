@@ -154,30 +154,28 @@ const DocumentEditor = () => {
     queryFn: () => apiRequest('GET', '/api/documents').then(res => res.json()),
   });
 
-  // Add metadata to documents (mock data for demo)
+  // Process documents from the API and add any missing metadata
   const documentsWithMetadata = useMemo(() => {
     if (!documents) return [];
     
     return documents.map((doc: any, index: number) => {
-      // Random date from last month
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const dueDate = index % 3 === 0 ? getRandomDate(new Date(), new Date(new Date().setMonth(new Date().getMonth() + 2))) : undefined;
-      
+      // Only generate random data if the field is missing from API response
+      // This ensures we use the API values when available
       return {
         ...doc,
-        status: doc.id % 5 === 0 ? "complete" : doc.id % 4 === 0 ? "in-progress" : doc.id % 3 === 0 ? "in-review" : doc.id % 2 === 0 ? "archived" : "draft",
-        tags: [
+        // Use API values if present, fallback to defaults for demo only
+        status: doc.status || (doc.id % 5 === 0 ? "complete" : doc.id % 4 === 0 ? "in-progress" : doc.id % 3 === 0 ? "in-review" : doc.id % 2 === 0 ? "archived" : "draft"),
+        tags: doc.tags || [
           index % 3 === 0 ? "Product" : "",
           index % 2 === 0 ? "Feature" : "",
           index % 5 === 0 ? "UX" : "",
           index % 7 === 0 ? "Technical" : "",
         ].filter(Boolean),
-        priority: index % 3 === 0 ? "high" : index % 2 === 0 ? "medium" : "low",
-        assignedTo: MOCK_USERS[index % MOCK_USERS.length].name,
-        dueDate: dueDate ? dueDate.toISOString() : undefined,
-        favorite: index % 5 === 0,
-        emoji: EMOJI_OPTIONS[index % EMOJI_OPTIONS.length],
+        priority: doc.priority || (index % 3 === 0 ? "high" : index % 2 === 0 ? "medium" : "low"),
+        assignedTo: doc.assignedTo || MOCK_USERS[index % MOCK_USERS.length].name,
+        dueDate: doc.dueDate || (index % 3 === 0 ? getRandomDate(new Date(), new Date(new Date().setMonth(new Date().getMonth() + 2))).toISOString() : undefined),
+        favorite: doc.favorite !== undefined ? doc.favorite : index % 5 === 0,
+        emoji: doc.emoji || EMOJI_OPTIONS[index % EMOJI_OPTIONS.length],
         custom: {
           createdBy: MOCK_USERS[index % MOCK_USERS.length].name,
           wordCount: Math.floor(Math.random() * 5000) + 500,
@@ -263,12 +261,26 @@ const DocumentEditor = () => {
   // Toggle favorite status
   const toggleFavorite = useCallback((documentId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    // In a real app, this would send an API request to update the document
-    // No toast notification as requested
     
-    // Update client state silently
-    queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-  }, []);
+    // Update the document's favorite status via API
+    const document = documentsWithMetadata.find(doc => doc.id === documentId);
+    if (document) {
+      apiRequest('PUT', `/api/documents/${documentId}`, { 
+        favorite: !document.favorite
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log(`Updated favorite status for document ${documentId}`);
+          // Force immediate refresh of document data
+          queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+          
+          // Also refetch specific document data if needed
+          queryClient.invalidateQueries({ queryKey: [`/api/documents/${documentId}`] });
+        }
+      })
+      .catch(error => console.error("Error updating favorite status:", error));
+    }
+  }, [documentsWithMetadata]);
 
   // Toggle column visibility
   const toggleColumnVisibility = useCallback((columnId: string, visible: boolean) => {
