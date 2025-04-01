@@ -28,6 +28,7 @@ import {
   Copy,
   Star,
   Clock,
+  Pencil,
   Users,
   PanelLeft,
   Layout,
@@ -283,6 +284,13 @@ const DocumentEditor = () => {
 
   // Handle document selection
   const handleDocumentSelect = (documentId: number) => {
+    // Here we would navigate to a document detail page
+    console.log(`Navigating to document: ${documentId}`);
+    
+    // In a real app with proper routing, you would do:
+    // navigate(`/documents/${documentId}`);
+    
+    // For now, we'll open the editor as a placeholder
     const selectedDoc = documentsWithMetadata.find(doc => doc.id === documentId);
     if (selectedDoc) {
       setSelectedDocumentId(documentId);
@@ -623,12 +631,9 @@ const DocumentEditor = () => {
     }
     
     return (
-      <div 
-        className="flex items-center gap-3 w-full cursor-text"
-        onClick={() => startCellEdit(document, "title")}
-      >
+      <div className="flex items-center gap-3 w-full">
         <div 
-          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100"
+          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             startCellEdit(document, "emoji");
@@ -636,8 +641,25 @@ const DocumentEditor = () => {
         >
           <span className="text-lg">{document.emoji}</span>
         </div>
-        <div className="truncate font-medium">
-          {document.title}
+        <div className="flex items-center w-full">
+          <div 
+            className="truncate font-medium cursor-pointer hover:text-primary hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDocumentSelect(document.id);
+            }}
+          >
+            {document.title}
+          </div>
+          <button 
+            className="ml-2 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              startCellEdit(document, "title");
+            }}
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
         </div>
       </div>
     );
@@ -975,8 +997,7 @@ const DocumentEditor = () => {
     return (
       <div 
         key={document.id} 
-        className="flex items-center h-12 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
-        onClick={() => handleDocumentSelect(document.id)}
+        className="flex items-center h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors"
       >
         {visibleColumns.map(column => (
           <div 
