@@ -316,10 +316,10 @@ const DocumentEditor = () => {
   const toggleFavorite = (documentId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     // In a real app, this would send an API request to update the document
-    toast({
-      title: "Favorite updated",
-      description: "Document favorite status has been updated.",
-    });
+    // No toast notification as requested
+    
+    // Update client state silently
+    queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
   };
 
   // Toggle column visibility
@@ -540,16 +540,9 @@ const DocumentEditor = () => {
       // Update client state
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       
-      toast({
-        title: "Updated successfully",
-        description: `Document ${field} has been updated.`,
-      });
+      // No toast notification as requested
     } catch (error: any) {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update document",
-        variant: "destructive",
-      });
+      console.error(`Failed to update ${field}:`, error);
     }
     
     // Reset editing state
@@ -638,6 +631,10 @@ const DocumentEditor = () => {
             e.stopPropagation();
             startCellEdit(document, "emoji");
           }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            startCellEdit(document, "emoji");
+          }}
         >
           <span className="text-lg">{document.emoji}</span>
         </div>
@@ -648,18 +645,13 @@ const DocumentEditor = () => {
               e.stopPropagation();
               handleDocumentSelect(document.id);
             }}
-          >
-            {document.title}
-          </div>
-          <button 
-            className="ml-2 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            onClick={(e) => {
+            onDoubleClick={(e) => {
               e.stopPropagation();
               startCellEdit(document, "title");
             }}
           >
-            <Pencil className="h-3 w-3" />
-          </button>
+            {document.title}
+          </div>
         </div>
       </div>
     );
@@ -1019,38 +1011,6 @@ const DocumentEditor = () => {
           >
             <Star className="h-4 w-4" fill={document.favorite ? "currentColor" : "none"} />
           </button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem 
-                className="cursor-pointer" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDocumentSelect(document.id);
-                }}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Copy className="h-4 w-4 mr-2" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-red-600">
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     );
