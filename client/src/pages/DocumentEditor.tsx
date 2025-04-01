@@ -719,13 +719,19 @@ const DocumentEditor = () => {
               <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "high")}>
                 <Badge variant="outline" className={getPriorityBadge("high")}>High</Badge>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => saveCellEdit(document.id, "priority", "none")}>
+                <span className="text-gray-500 text-sm flex items-center gap-1">
+                  <X className="h-3.5 w-3.5" /> Remove priority
+                </span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       );
     }
     
-    return (
+    return document.priority && document.priority !== "none" ? (
       <Badge 
         variant="outline" 
         className={`${getPriorityBadge(document.priority)} cursor-pointer`}
@@ -733,6 +739,13 @@ const DocumentEditor = () => {
       >
         {document.priority.charAt(0).toUpperCase() + document.priority.slice(1)}
       </Badge>
+    ) : (
+      <span 
+        className="text-gray-400 text-xs cursor-pointer"
+        onClick={() => startCellEdit(document, "priority")}
+      >
+        Set priority
+      </span>
     );
   };
   
@@ -768,25 +781,58 @@ const DocumentEditor = () => {
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-64">
-              <div className="space-y-2">
-                <h4 className="font-medium">Tags</h4>
-                <div className="space-y-1">
-                  {mockTags.map((tag) => (
-                    <div key={tag} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`tag-${tag}`}
-                        checked={editValue.includes(tag)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setEditValue([...editValue, tag]);
-                          } else {
-                            setEditValue(editValue.filter((t: string) => t !== tag));
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Tags</h4>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {editValue.map((tag: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="px-2 py-1">
+                        {tag}
+                        <X
+                          className="h-3 w-3 ml-1 cursor-pointer"
+                          onClick={() => setEditValue(editValue.filter((t: string) => t !== tag))}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex mb-2">
+                    <Input
+                      placeholder="Add a tag..."
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value) {
+                          const newTag = e.currentTarget.value.trim();
+                          if (newTag && !editValue.includes(newTag)) {
+                            setEditValue([...editValue, newTag]);
+                            e.currentTarget.value = '';
                           }
-                        }}
-                      />
-                      <Label htmlFor={`tag-${tag}`}>{tag}</Label>
-                    </div>
-                  ))}
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Common tags</h4>
+                  <div className="space-y-1">
+                    {mockTags.map((tag) => (
+                      <div key={tag} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`tag-${tag}`}
+                          checked={editValue.includes(tag)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setEditValue([...editValue, tag]);
+                            } else {
+                              setEditValue(editValue.filter((t: string) => t !== tag));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`tag-${tag}`}>{tag}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </PopoverContent>
@@ -796,31 +842,55 @@ const DocumentEditor = () => {
     }
     
     return (
-      <div 
-        className="flex items-center gap-1 overflow-hidden cursor-pointer"
-        onClick={() => startCellEdit(document, "tags")}
-      >
-        {document.tags.length > 0 ? (
-          <>
-            {document.tags.slice(0, 2).map((tag, i) => (
-              <Badge 
-                key={i} 
-                variant="outline" 
-                className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {document.tags.length > 2 && (
-              <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                +{document.tags.length - 2}
-              </Badge>
-            )}
-          </>
-        ) : (
-          <span className="text-gray-400 text-xs">No tags</span>
-        )}
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <div 
+              className="flex items-center gap-1 overflow-hidden cursor-pointer"
+              onClick={() => startCellEdit(document, "tags")}
+            >
+              {document.tags.length > 0 ? (
+                <>
+                  {document.tags.slice(0, 2).map((tag, i) => (
+                    <Badge 
+                      key={i} 
+                      variant="outline" 
+                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                  {document.tags.length > 2 && (
+                    <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                      +{document.tags.length - 2}
+                    </Badge>
+                  )}
+                </>
+              ) : (
+                <span className="text-gray-400 text-xs">No tags</span>
+              )}
+            </div>
+          </TooltipTrigger>
+          {document.tags.length > 2 && (
+            <TooltipContent>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium mb-1">All tags:</p>
+                <div className="flex flex-wrap gap-1">
+                  {document.tags.map((tag, i) => (
+                    <Badge 
+                      key={i} 
+                      variant="outline" 
+                      className="bg-blue-50 text-blue-700 border-blue-200"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     );
   };
   
