@@ -5,7 +5,6 @@ A web-based tool that leverages AI to streamline product research, documentation
 ## Features
 
 - **Document Management**: Create, organize, and edit product requirements documents with a customizable table view.
-- **AI-Powered Column Customization**: Intelligently suggests table layouts based on your workflow and document content.
 - **Drag-and-Drop Columns**: Easily reorganize table columns by dragging and dropping.
 - **Direct In-Cell Editing**: Double-click any cell to edit its contents without popups or forms.
 - **Smart Status Tracking**: Track document status with visual indicators.
@@ -61,7 +60,7 @@ npm run dev
 ## Usage
 
 - Navigate to the Documents section to create and manage product requirements documents
-- Use the AI Suggestions feature to optimize your table layout
+
 - Double-click on cells to edit content
 - Drag column headers to reorganize the table
 - Use the Research Materials section to upload and analyze research data
