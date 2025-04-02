@@ -434,23 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(204).send();
   });
   
-  // AI-powered column customization suggestions
-  apiRouter.post("/columns/suggestions", async (req, res) => {
-    try {
-      const { documentData, currentColumns, userRole = 'product manager' } = req.body;
-      
-      if (!documentData || !currentColumns || !Array.isArray(documentData) || !Array.isArray(currentColumns)) {
-        return res.status(400).json({ message: "Missing or invalid required fields" });
-      }
-      
-      // Generate column layout suggestions
-      const suggestions = await openai.generateColumnSuggestions(documentData, currentColumns, userRole);
-      
-      res.status(200).json(suggestions);
-    } catch (error: any) {
-      res.status(500).json({ message: "Error generating column suggestions", error: error.message });
-    }
-  });
+  // AI-powered column customization suggestions endpoint removed
 
   const httpServer = createServer(app);
   return httpServer;

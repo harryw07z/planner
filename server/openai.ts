@@ -4,12 +4,12 @@ import aiService from "./services/ai";
 export const analyzeResearchMaterial = aiService.analyzeResearchMaterial.bind(aiService);
 export const generatePrdDraft = aiService.generatePrdDraft.bind(aiService);
 export const generateFeatureIdeas = aiService.generateFeatureIdeas.bind(aiService);
-export const generateColumnSuggestions = aiService.generateColumnSuggestions.bind(aiService);
+// generateColumnSuggestions removed
 
 // Export the service as default
 export default {
   analyzeResearchMaterial,
   generatePrdDraft,
   generateFeatureIdeas,
-  generateColumnSuggestions,
+  // generateColumnSuggestions removed
 };

@@ -18,7 +18,7 @@ import {
   horizontalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ColumnSuggestionsPopover } from './ColumnSuggestionsPopover';
+// AI suggestion feature removed
 
 // Simplified DocumentWithMetadata interface to avoid schema import
 interface DocumentCustom {
@@ -562,34 +562,13 @@ export const DocumentTable = memo(({
         )}
       </div>
       
-      {/* Table footer with tips and AI suggestions */}
+      {/* Table footer with tips */}
       <div className="p-4 bg-blue-50 text-blue-800 text-sm rounded-b-lg border-t border-blue-100">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div className="flex items-center gap-2">
             <div className="p-1 bg-blue-100 rounded-sm text-blue-700 font-medium text-xs">Tip</div>
             <div>Drag and drop column headers to rearrange columns</div>
           </div>
-          
-          {/* Import and use in the component JSX */}
-          {documents.length > 0 && (
-            <ColumnSuggestionsPopover 
-              documents={documents}
-              columns={visibleColumnsState}
-              onApplySuggestion={(layout) => {
-                // Find the columns that match the keys in the layout
-                const newColumnOrder = layout
-                  .map(key => visibleColumnsState.find(col => col.key === key))
-                  .filter(Boolean) as ColumnType[];
-                
-                // Add any columns that weren't in the layout at the end
-                const remainingColumns = visibleColumnsState.filter(
-                  col => !layout.includes(col.key)
-                );
-                
-                setVisibleColumnsState([...newColumnOrder, ...remainingColumns]);
-              }}
-            />
-          )}
         </div>
       </div>
     </div>
