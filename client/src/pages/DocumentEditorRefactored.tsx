@@ -58,7 +58,7 @@ import {
 // Common constants - adjusted widths to prevent text wrapping
 const DEFAULT_COLUMNS = [
   { id: "col-1", name: "Title", key: "title", visible: true, width: 360 },
-  { id: "col-2", name: "Status", key: "status", visible: true, width: 140 },
+  { id: "col-2", name: "Status", key: "status", visible: true, width: 155 },
   { id: "col-3", name: "Last Updated", key: "updatedAt", visible: true, width: 160 },
   { id: "col-4", name: "Tags", key: "tags", visible: true, width: 200 },
   { id: "col-5", name: "Priority", key: "priority", visible: true, width: 130 },
