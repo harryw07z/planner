@@ -39,7 +39,7 @@ export class XAIService {
         response_format: { type: "json_object" },
       });
 
-      const content = response.choices[0].message.content;
+      const content = response.choices[0].message.content ?? '{"insights":[],"recommendations":[]}';
       const result = JSON.parse(content) as AIInsight;
       
       return result;
@@ -81,7 +81,7 @@ export class XAIService {
         messages: [{ role: "user", content: prompt }],
       });
 
-      return response.choices[0].message.content || "Failed to generate PRD draft";
+      return response.choices[0].message.content ?? "Failed to generate PRD draft";
     } catch (error) {
       console.error("XAI PRD Generation Error:", error);
       return "Error: Unable to generate PRD draft. Please try again later.";
@@ -119,7 +119,7 @@ export class XAIService {
         response_format: { type: "json_object" },
       });
 
-      const content = response.choices[0].message.content;
+      const content = response.choices[0].message.content ?? '[]';
       return JSON.parse(content);
     } catch (error) {
       console.error("XAI Feature Generation Error:", error);
@@ -159,7 +159,7 @@ export class XAIService {
         max_tokens: 500,
       });
 
-      return response.choices[0].message.content || "Failed to analyze image";
+      return response.choices[0].message.content ?? "Failed to analyze image";
     } catch (error) {
       console.error("XAI Image Analysis Error:", error);
       return "Error: Unable to analyze image. Please try again later.";
