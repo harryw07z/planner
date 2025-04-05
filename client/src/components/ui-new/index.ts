@@ -9,3 +9,7 @@ export * from './Select';
 export * from './SimpleTabs';
 export * from './Badge'; // Exports DaisyBadge
 export * from './Textarea';
+export * from './Toggle';
+export * from './Tooltip';
+export * from './Progress';
+export * from './Breadcrumb';

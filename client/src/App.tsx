@@ -5,14 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import DocumentEditor from "@/pages/DocumentEditorRefactored";
 import RoadmapCalendar from "@/pages/RoadmapCalendar";
 import ResearchMaterials from "@/pages/ResearchMaterials";
-import { Bell, HelpCircle, Search, PlusCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Bell, HelpCircle, Search, PlusCircle, Home, FileText, Calendar, BookOpen } from "lucide-react";
+import { Button, Breadcrumb, Tooltip } from "@/components/ui-new";
 
 function App() {
   const [location] = useLocation();
@@ -90,7 +84,6 @@ function App() {
           </div>
           
           <div className="flex items-center gap-2">
-            <TooltipProvider>
               <div className="flex items-center rounded-md border border-input bg-background px-3 h-9">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <input
@@ -100,28 +93,25 @@ function App() {
                 />
               </div>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
+              <div className="flex-shrink-0">
+                <Tooltip text="Notifications" position="bottom" color="primary">
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
                     <Bell className="h-5 w-5" />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
-              </Tooltip>
+                </Tooltip>
+              </div>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
+              <div className="flex-shrink-0">
+                <Tooltip text="Help & Resources" position="bottom" color="primary">
+                  <Button variant="ghost" size="sm" className="rounded-full p-2">
                     <HelpCircle className="h-5 w-5" />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>Help & Resources</TooltipContent>
-              </Tooltip>
+                </Tooltip>
+              </div>
               
               <div className="w-8 h-8 rounded-full bg-primary/10 ml-2 flex items-center justify-center cursor-pointer">
                 <span className="text-primary font-medium text-sm">PM</span>
               </div>
-            </TooltipProvider>
           </div>
         </header>
         
