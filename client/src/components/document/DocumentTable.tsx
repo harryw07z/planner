@@ -155,15 +155,82 @@ export const DocumentTable = memo(({
     };
   }, []);
 
+  // Calculate table width to handle column auto-sizing
+  const [tableWidth, setTableWidth] = useState(0);
+  
   // Get visible columns and manage dragging state
   const [activeId, setActiveId] = useState<string | null>(null);
   const [visibleColumnsState, setVisibleColumnsState] = useState<ColumnType[]>([]);
   
+  // Update table width on resize
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.clientWidth);
+      }
+    };
+
+    // Initialize on mount
+    updateTableWidth();
+    
+    // Set up resize observer to track container width changes
+    const resizeObserver = new ResizeObserver(updateTableWidth);
+    if (tableRef.current) {
+      resizeObserver.observe(tableRef.current);
+    }
+
+    // Listen for window resize as well
+    window.addEventListener('resize', updateTableWidth);
+    
+    return () => {
+      if (tableRef.current) {
+        resizeObserver.unobserve(tableRef.current);
+      }
+      window.removeEventListener('resize', updateTableWidth);
+    };
+  }, []);
+  
   // Update visible columns state when columns prop changes
   useEffect(() => {
     const filtered = columns.filter(column => column.visible);
-    setVisibleColumnsState(filtered);
-  }, [columns]);
+    
+    // If we have a valid table width and visible columns, calculate auto-sizing
+    if (tableWidth > 0 && filtered.length > 0) {
+      const totalWidthUsed = filtered.reduce((sum, col) => sum + col.width, 0);
+      const availableWidth = tableWidth - 2; // Subtracting for borders
+      
+      // Only perform auto-sizing if the total width is significantly different from available width
+      // This prevents constant adjustments during small UI changes
+      if (Math.abs(totalWidthUsed - availableWidth) > 30) {
+        // Calculate scale factor to distribute width proportionally
+        const scaleFactor = availableWidth / totalWidthUsed;
+        
+        // Apply proportional scaling to each column, respecting minimum widths
+        const adjustedColumns = filtered.map(col => ({
+          ...col,
+          width: Math.max(80, Math.floor(col.width * scaleFactor)),
+        }));
+        
+        setVisibleColumnsState(adjustedColumns);
+        
+        // Optionally update parent state to persist these widths
+        // To avoid infinite update loops, only update parent state if there's a significant change
+        if (Math.abs(totalWidthUsed - availableWidth) > 50) {
+          // Update parent's column widths
+          const updatedColumns = columns.map(col => {
+            const adjustedCol = adjustedColumns.find(ac => ac.id === col.id);
+            return adjustedCol && col.visible ? { ...col, width: adjustedCol.width } : col;
+          });
+          // Prevent infinite loop by only updating if there's a significant change
+          onResizeColumn(updatedColumns[0].id, updatedColumns[0].width);
+        }
+      } else {
+        setVisibleColumnsState(filtered);
+      }
+    } else {
+      setVisibleColumnsState(filtered);
+    }
+  }, [columns, tableWidth]);
 
   // Set up sensors for drag and drop
   const sensors = useSensors(
@@ -214,6 +281,11 @@ export const DocumentTable = memo(({
       transform: CSS.Transform.toString(transform),
       transition,
       width: column.width,
+      minWidth: column.key === "title" ? 180 : 80, // Match row cells
+      maxWidth: column.width,
+      flexBasis: column.width,
+      flexGrow: column.key === "title" ? 1 : 0, // Match row cells
+      flexShrink: 0, // Don't shrink columns
       zIndex: isDragging ? 10 : 1,
       opacity: isDragging ? 0.8 : 1,
     };
@@ -223,7 +295,7 @@ export const DocumentTable = memo(({
         ref={setNodeRef}
         style={style}
         className={cn(
-          "group relative flex items-center h-full whitespace-nowrap",
+          "group relative flex items-center h-full",
           isDragging && "bg-gray-100 shadow-md rounded"
         )}
         {...attributes}
@@ -231,7 +303,7 @@ export const DocumentTable = memo(({
       >
         <div 
           className={cn(
-            "flex items-center gap-1 text-xs font-medium text-gray-500 px-4 py-2 select-none whitespace-nowrap w-full",
+            "flex items-center gap-1 text-xs font-medium text-gray-500 px-3 py-2 select-none w-full truncate",
             isSortable && "cursor-pointer hover:text-gray-700"
           )}
           onClick={(e) => {
@@ -242,13 +314,13 @@ export const DocumentTable = memo(({
         >
           {column.name}
           {isSorted && (
-            <SortAsc className={`h-3.5 w-3.5 ml-1 ${sortDirection === "desc" ? "transform rotate-180" : ""}`} />
+            <SortAsc className={`h-3.5 w-3.5 ml-1 flex-shrink-0 ${sortDirection === "desc" ? "transform rotate-180" : ""}`} />
           )}
         </div>
         
         {/* Resizer */}
         <div 
-          className="absolute right-0 top-0 h-full w-1 cursor-col-resize group-hover:bg-gray-300"
+          className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize group-hover:bg-gray-300 hover:bg-blue-400"
           onMouseDown={(e) => {
             e.stopPropagation(); // Prevent drag from starting when resizing
             handleResizeStart(e, column.id, column.width);
@@ -506,14 +578,21 @@ export const DocumentTable = memo(({
     return (
       <div 
         key={document.id} 
-        className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors whitespace-nowrap"
+        className="flex items-center min-h-12 border-b border-gray-100 hover:bg-gray-50 transition-colors"
         onClick={() => onDocumentSelect(document.id)}
       >
         {visibleColumnsState.map(column => (
           <div 
             key={column.id} 
-            className="flex items-center px-3 py-2 overflow-hidden whitespace-nowrap text-ellipsis"
-            style={{ width: column.width }}
+            className="flex items-center px-3 py-2 overflow-hidden"
+            style={{ 
+              width: column.width,
+              minWidth: column.key === "title" ? 180 : 80, // Ensure title has more space
+              maxWidth: column.width,
+              flexBasis: column.width,
+              flexGrow: column.key === "title" ? 1 : 0, // Allow title to grow when extra space available
+              flexShrink: 0 // Don't shrink columns
+            }}
             onClick={(e) => {
               // Prevent row click when clicking on a cell that handles its own clicks
               if (column.key === "title" || column.key === "tags" || 
@@ -523,7 +602,14 @@ export const DocumentTable = memo(({
               }
             }}
           >
-            {renderCellContent(document, column)}
+            <div className={cn(
+              "w-full overflow-hidden",
+              // Apply text truncation to all non-interactive cells
+              !(column.key === "title" || column.key === "tags" || 
+                column.key === "status" || column.key === "priority") && "truncate"
+            )}>
+              {renderCellContent(document, column)}
+            </div>
           </div>
         ))}
       </div>
