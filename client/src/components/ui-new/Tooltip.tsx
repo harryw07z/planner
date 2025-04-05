@@ -22,23 +22,23 @@ export function Tooltip({
   
   // Map position to daisyUI classes
   const positionClass = {
-    top: 'daisy-tooltip-top',
-    bottom: 'daisy-tooltip-bottom',
-    left: 'daisy-tooltip-left',
-    right: 'daisy-tooltip-right',
+    top: 'tooltip-top',
+    bottom: 'tooltip-bottom',
+    left: 'tooltip-left',
+    right: 'tooltip-right',
   }[position];
 
   // Map color to daisyUI classes
-  const colorClass = color !== 'default' ? `daisy-tooltip-${color}` : '';
+  const colorClass = color !== 'default' ? `tooltip-${color}` : '';
   
   // Determine open state (from prop or hover)
   const isOpen = open !== undefined ? open : isHovered;
-  const openClass = isOpen ? 'daisy-tooltip-open' : '';
+  const openClass = isOpen ? 'tooltip-open' : '';
 
   return (
     <div
       className={cn(
-        'daisy-tooltip',
+        'tooltip',
         positionClass,
         colorClass,
         openClass,

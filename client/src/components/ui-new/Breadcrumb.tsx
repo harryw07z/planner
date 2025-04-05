@@ -17,7 +17,7 @@ export interface BreadcrumbProps {
 
 export function Breadcrumb({ items, separator = '/', className }: BreadcrumbProps) {
   return (
-    <div className={cn('daisy-breadcrumbs text-sm', className)}>
+    <div className={cn('breadcrumbs text-sm', className)}>
       <ul>
         {items.map((item, index) => (
           <li key={index}>

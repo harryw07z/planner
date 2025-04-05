@@ -18,7 +18,7 @@ const Progress = React.forwardRef<HTMLProgressElement, ProgressProps>(
     }[size];
 
     // Map color to daisyUI classes
-    const colorClass = color !== 'default' ? `daisy-progress-${color}` : '';
+    const colorClass = color !== 'default' ? `progress-${color}` : '';
 
     // Set indeterminate animation
     const indeterminateClass = indeterminate ? 'animate-progress' : '';
@@ -27,7 +27,7 @@ const Progress = React.forwardRef<HTMLProgressElement, ProgressProps>(
       <progress
         ref={ref}
         className={cn(
-          'daisy-progress w-full',
+          'progress w-full',
           sizeClass,
           colorClass,
           indeterminateClass,
@@ -46,8 +46,8 @@ if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
     @keyframes progress {
-      0% { --daisy-value: 0; }
-      100% { --daisy-value: 100; }
+      0% { --value: 0; }
+      100% { --value: 100; }
     }
     .animate-progress {
       animation: progress 1.5s infinite linear;

@@ -12,31 +12,31 @@ const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(
   ({ className, children, label, size = 'md', color = 'primary', labelClassName, ...props }, ref) => {
     // Map size to daisyUI classes
     const sizeClass = {
-      xs: 'daisy-toggle-xs',
-      sm: 'daisy-toggle-sm',
+      xs: 'toggle-xs',
+      sm: 'toggle-sm',
       md: '',
-      lg: 'daisy-toggle-lg',
+      lg: 'toggle-lg',
     }[size];
 
     // Map color to daisyUI classes
     const colorClass = {
-      primary: 'daisy-toggle-primary',
-      secondary: 'daisy-toggle-secondary',
-      accent: 'daisy-toggle-accent',
-      success: 'daisy-toggle-success',
-      warning: 'daisy-toggle-warning',
-      info: 'daisy-toggle-info',
-      error: 'daisy-toggle-error',
+      primary: 'toggle-primary',
+      secondary: 'toggle-secondary',
+      accent: 'toggle-accent',
+      success: 'toggle-success',
+      warning: 'toggle-warning',
+      info: 'toggle-info',
+      error: 'toggle-error',
     }[color];
 
     return (
       <div className="form-control">
-        <label className={cn("daisy-label cursor-pointer flex items-center gap-2", labelClassName)}>
-          {label && <span className="daisy-label-text">{label}</span>}
+        <label className={cn("label cursor-pointer flex items-center gap-2", labelClassName)}>
+          {label && <span className="label-text">{label}</span>}
           <input
             type="checkbox"
             className={cn(
-              'daisy-toggle',
+              'toggle',
               sizeClass,
               colorClass,
               className

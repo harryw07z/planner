@@ -25,20 +25,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     // Map size to daisyUI classes
     const sizeClass = {
-      xs: 'daisy-btn-xs',
-      sm: 'daisy-btn-sm',
-      md: 'daisy-btn-md',
-      lg: 'daisy-btn-lg',
+      xs: 'btn-xs',
+      sm: 'btn-sm',
+      md: 'btn-md',
+      lg: 'btn-lg',
     }[size];
 
     return (
       <button
         className={cn(
-          'daisy-btn',
+          'btn',
           {
-            [`daisy-btn-${variant}`]: variant && !outline,
-            'daisy-btn-outline': outline,
-            [`daisy-btn-outline daisy-btn-${variant}`]: outline && variant,
+            [`btn-${variant}`]: variant && !outline,
+            'btn-outline': outline,
+            [`btn-outline btn-${variant}`]: outline && variant,
             'opacity-50 pointer-events-none': isLoading,
           },
           sizeClass,
@@ -49,7 +49,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <span className="daisy-loading daisy-loading-spinner mr-2"></span>
+          <span className="loading loading-spinner mr-2"></span>
         )}
         {iconLeft && !isLoading && <span className="mr-2">{iconLeft}</span>}
         {children}
