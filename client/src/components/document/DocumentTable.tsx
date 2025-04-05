@@ -303,7 +303,7 @@ export const DocumentTable = memo(({
       >
         <div 
           className={cn(
-            "flex items-center gap-1 text-xs font-medium text-gray-500 px-3 py-2 select-none w-full truncate",
+            "flex items-center gap-1 text-xs font-medium text-gray-500 px-3.5 py-2 select-none w-full truncate",
             isSortable && "cursor-pointer hover:text-gray-700"
           )}
           onClick={(e) => {
@@ -584,7 +584,7 @@ export const DocumentTable = memo(({
         {visibleColumnsState.map(column => (
           <div 
             key={column.id} 
-            className="flex items-center px-3 py-2 overflow-hidden"
+            className="flex items-center px-3.5 py-2 overflow-hidden"
             style={{ 
               width: column.width,
               minWidth: column.key === "title" ? 180 : 80, // Ensure title has more space
