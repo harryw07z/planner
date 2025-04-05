@@ -57,48 +57,60 @@ export function EditableTagsSimple({
   if (!isEditing) {
     return (
       <div
-        className="flex items-center gap-1 overflow-hidden cursor-pointer rounded hover:bg-gray-50 py-1 px-0.5 transition-colors group"
+        className="flex items-center gap-1 overflow-hidden cursor-pointer rounded hover:bg-gray-50 py-1 px-0.5 transition-colors group w-full"
         onClick={onStartEdit} // Changed to single-click for easier access
       >
         {tags && tags.length > 0 ? (
-          <div className="flex items-center gap-1 flex-wrap">
-            {tags.slice(0, 2).map((tag, i) => (
-              <Badge 
-                key={i} 
-                variant="outline" 
-                className="bg-blue-50 text-blue-700 border-blue-200 group-hover:bg-blue-100"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {tags.length > 2 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="bg-gray-100 text-gray-700 cursor-help">
-                      +{tags.length - 2}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent align="start" className="p-2">
-                    <div className="flex flex-wrap gap-1 max-w-48">
-                      {tags.slice(2).map((tag, i) => (
-                        <Badge 
-                          key={i} 
-                          variant="outline" 
-                          className="bg-blue-50 text-blue-700 border-blue-200"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+          <div className="flex items-center gap-1 w-full max-w-full flex-nowrap">
+            {tags.length <= 2 ? (
+              // Show all tags when there are only 1-2 tags
+              tags.map((tag, i) => (
+                <Badge 
+                  key={i} 
+                  variant="outline" 
+                  className="bg-blue-50 text-blue-700 border-blue-200 group-hover:bg-blue-100 text-xs whitespace-nowrap"
+                >
+                  {tag}
+                </Badge>
+              ))
+            ) : (
+              // Show only first tag and a count when there are more than 2
+              <>
+                <Badge 
+                  key={0} 
+                  variant="outline" 
+                  className="bg-blue-50 text-blue-700 border-blue-200 group-hover:bg-blue-100 text-xs whitespace-nowrap flex-shrink-0"
+                >
+                  {tags[0]}
+                </Badge>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="bg-gray-100 text-gray-700 cursor-help flex-shrink-0 text-xs">
+                        +{tags.length - 1}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent align="start" className="p-2">
+                      <div className="flex flex-wrap gap-1 max-w-48">
+                        {tags.slice(1).map((tag, i) => (
+                          <Badge 
+                            key={i} 
+                            variant="outline" 
+                            className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
             )}
           </div>
         ) : (
           <div className="flex items-center text-gray-400 text-xs">
-            <Tag className="h-3.5 w-3.5 mr-1" />
+            <Tag className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
             <span>Add tags</span>
           </div>
         )}

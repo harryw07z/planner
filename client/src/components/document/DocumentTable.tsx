@@ -603,10 +603,9 @@ export const DocumentTable = memo(({
             }}
           >
             <div className={cn(
-              "w-full overflow-hidden",
-              // Apply text truncation to all non-interactive cells
-              !(column.key === "title" || column.key === "tags" || 
-                column.key === "status" || column.key === "priority") && "truncate"
+              "w-full overflow-hidden whitespace-nowrap",
+              // Apply text truncation to all non-interactive cells except tags
+              column.key !== "tags" && "text-ellipsis"
             )}>
               {renderCellContent(document, column)}
             </div>
